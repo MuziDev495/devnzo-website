@@ -218,7 +218,7 @@ const AboutPage = () => {
             <h2 className="text-4xl font-bold text-foreground mb-4">Leadership Team</h2>
             <p className="text-xl text-muted-foreground">Meet the people driving innovation at Devnzo</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {team.map((member, index) => (
               <div
                 key={index}
