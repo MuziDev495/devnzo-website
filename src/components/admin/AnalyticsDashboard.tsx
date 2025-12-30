@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Users, Clock, TrendingDown, Activity, FileText } from 'lucide-react';
+import { Eye, Users, Clock, TrendingDown, Activity, FileText, RefreshCw } from 'lucide-react';
 import AnalyticsCard from './AnalyticsCard';
 import TrafficChart from './TrafficChart';
 import TopPagesTable from './TopPagesTable';
 import TrafficSourcesChart from './TrafficSourcesChart';
 import DeviceStatsCard from './DeviceStatsCard';
 import { 
-  generateAnalyticsOverview, 
-  generateDailyTraffic, 
-  generateTopPages,
-  generateTrafficSources,
-  generateDeviceStats,
-  generateBrowserStats,
   formatDuration,
   formatNumber,
   AnalyticsOverview,
@@ -21,11 +15,22 @@ import {
   DeviceStat,
   BrowserStat
 } from '@/lib/analyticsData';
+import {
+  fetchAnalyticsOverview,
+  fetchDailyTraffic,
+  fetchTopPages,
+  fetchTrafficSources,
+  fetchDeviceStats,
+  fetchBrowserStats,
+  getLiveVisitorCount
+} from '@/lib/analyticsFirestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState<'7' | '30' | '90'>('7');
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
   const [trafficData, setTrafficData] = useState<DailyTraffic[]>([]);
@@ -34,35 +39,52 @@ const AnalyticsDashboard: React.FC = () => {
   const [devices, setDevices] = useState<DeviceStat[]>([]);
   const [browsers, setBrowsers] = useState<BrowserStat[]>([]);
 
-  useEffect(() => {
-    // Simulate loading analytics data
-    const loadData = () => {
-      setLoading(true);
-      setTimeout(() => {
-        setOverview(generateAnalyticsOverview());
-        setTrafficData(generateDailyTraffic(parseInt(dateRange)));
-        setTopPages(generateTopPages());
-        setTrafficSources(generateTrafficSources());
-        setDevices(generateDeviceStats());
-        setBrowsers(generateBrowserStats());
-        setLoading(false);
-      }, 800);
-    };
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    else setRefreshing(true);
+    
+    try {
+      const days = parseInt(dateRange);
+      const [overviewData, traffic, pages, sources, deviceStats, browserStats] = await Promise.all([
+        fetchAnalyticsOverview(days),
+        fetchDailyTraffic(days),
+        fetchTopPages(days),
+        fetchTrafficSources(days),
+        fetchDeviceStats(days),
+        fetchBrowserStats(days)
+      ]);
+      
+      setOverview(overviewData);
+      setTrafficData(traffic);
+      setTopPages(pages);
+      setTrafficSources(sources);
+      setDevices(deviceStats);
+      setBrowsers(browserStats);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     loadData();
   }, [dateRange]);
 
   // Update live visitors periodically
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (overview) {
-        const newLiveVisitors = Math.max(1, overview.liveVisitors + Math.floor(Math.random() * 5) - 2);
-        setOverview(prev => prev ? { ...prev, liveVisitors: newLiveVisitors } : null);
+    const interval = setInterval(async () => {
+      try {
+        const liveCount = await getLiveVisitorCount();
+        setOverview(prev => prev ? { ...prev, liveVisitors: liveCount } : null);
+      } catch (error) {
+        console.error('Error updating live visitors:', error);
       }
-    }, 5000);
+    }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
-  }, [overview]);
+  }, []);
 
   if (loading) {
     return (
@@ -94,10 +116,23 @@ const AnalyticsDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-center gap-2">
-        <Activity className="h-5 w-5 text-primary" />
-        <h2 className="text-xl font-semibold">Website Analytics</h2>
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">Demo Data</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Activity className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold">Website Analytics</h2>
+          <span className="text-xs text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+            Live Data
+          </span>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => loadData(false)}
+          disabled={refreshing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Overview Stats */}
