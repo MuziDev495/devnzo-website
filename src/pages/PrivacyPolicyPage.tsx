@@ -37,22 +37,14 @@ const PrivacyPolicyPage = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
               Privacy Policy
             </h1>
-            <p className="text-lg text-white/90 max-w-3xl mx-auto">
+            <p className="text-lg text-white/90 max-w-3xl mx-auto mb-6">
               Thank you for choosing to be part of our community at Devnzo Inc., doing business as 
               Devnzo ("Devnzo", "we", "us", "our"). We are committed to protecting your personal 
               information and your right to privacy. If you have any questions or concerns about this 
               privacy notice, or our practices with regards to your personal information, please 
               contact us at <a href="mailto:contact@devnzo.com" className="text-white underline hover:text-white/80">contact@devnzo.com</a>.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Introduction */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-muted/30 rounded-2xl p-8 mb-8 text-center">
-            <p className="text-muted-foreground mb-4">
+            <p className="text-white/80 max-w-3xl mx-auto mb-4">
               When you visit our website https://devnzo.com (the "Website"), and more generally, use 
               any of our services (the "Services", which include the Website), we appreciate that you 
               are trusting us with your personal information. We take your privacy very seriously. In 
@@ -62,22 +54,26 @@ const PrivacyPolicyPage = () => {
               in this privacy notice that you do not agree with, please discontinue use of our Services 
               immediately.
             </p>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-white/80 max-w-3xl mx-auto mb-4">
               This privacy notice applies to all information collected through our Services (which, as 
               described above, includes our Website), as well as any related services, sales, 
               marketing or events.
             </p>
-            <p className="text-muted-foreground font-medium">
+            <p className="text-white/90 font-medium max-w-3xl mx-auto mb-6">
               Please read this privacy notice carefully as it will help you understand what we do with 
               the information that we collect.
             </p>
+            <div className="flex items-center gap-2 text-white/70 justify-center">
+              <Calendar className="w-5 h-5" />
+              <span>Last updated: November 24, 2025</span>
+            </div>
           </div>
+        </div>
+      </section>
 
-          {/* Last Updated */}
-          <div className="flex items-center gap-2 text-muted-foreground mb-12 justify-center">
-            <Calendar className="w-5 h-5" />
-            <span>Last updated: November 24, 2025</span>
-          </div>
+      {/* Content Sections */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
 
           {/* Section 1: What Information Do We Collect */}
           <div className="bg-card rounded-2xl p-8 border border-border shadow-sm mb-8">
