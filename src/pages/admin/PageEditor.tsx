@@ -580,6 +580,32 @@ const PageEditor: React.FC = () => {
                   </CardContent>
                 </Card>
 
+                {/* Page Status */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Page Status</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Visibility</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {pageData.isActive ? 'Public' : 'Hidden'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={pageData.isActive}
+                        onCheckedChange={(checked) => setPageData(prev => ({ ...prev, isActive: checked }))}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {pageData.isActive 
+                        ? 'This page is visible to everyone.' 
+                        : 'This page is hidden. Visitors will see a 404 error.'}
+                    </p>
+                  </CardContent>
+                </Card>
+
                 {/* Page Info */}
                 <Card>
                   <CardHeader>
