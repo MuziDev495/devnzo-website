@@ -48,18 +48,40 @@ interface MenusData {
   [key: string]: MenuData;
 }
 
+// Default menus with the actual live navigation items from the website
 const defaultMenus: MenusData = {
   header: {
     name: 'Header Navigation',
-    items: []
+    items: [
+      { id: 'header_1', title: 'Products', path: '/products', order: 0, visible: true },
+      { id: 'header_2', title: 'Resources', path: '/resources', order: 1, visible: true },
+      { id: 'header_2a', title: 'Blog', path: '/blog', order: 0, parentId: 'header_2', visible: true },
+      { id: 'header_2b', title: 'Help Center', path: '/help-center', order: 1, parentId: 'header_2', visible: true },
+      { id: 'header_2c', title: 'Documentation', path: '/documentation', order: 2, parentId: 'header_2', visible: true },
+      { id: 'header_2d', title: 'FAQs', path: '/faq', order: 3, parentId: 'header_2', visible: true },
+      { id: 'header_3', title: 'Partners', path: '/partners', order: 2, visible: true },
+      { id: 'header_4', title: 'About', path: '/about', order: 3, visible: true },
+      { id: 'header_5', title: 'Contact', path: '/contact', order: 4, visible: true },
+    ]
   },
   footerCompany: {
     name: 'Footer - Company',
-    items: []
+    items: [
+      { id: 'footer_company_1', title: 'About Us', path: '/about', order: 0, visible: true },
+      { id: 'footer_company_2', title: 'Contact', path: '/contact', order: 1, visible: true },
+      { id: 'footer_company_3', title: 'Privacy Policy', path: '/privacy-policy', order: 2, visible: true },
+      { id: 'footer_company_4', title: 'Terms of Service', path: '/terms-of-service', order: 3, visible: true },
+    ]
   },
   footerResources: {
     name: 'Footer - Resources',
-    items: []
+    items: [
+      { id: 'footer_resources_1', title: 'Blog', path: '/blog', order: 0, visible: true },
+      { id: 'footer_resources_2', title: 'Help Center', path: '/help-center', order: 1, visible: true },
+      { id: 'footer_resources_3', title: 'Documentation', path: '/documentation', order: 2, visible: true },
+      { id: 'footer_resources_4', title: 'Support', path: '/support', order: 3, visible: true },
+      { id: 'footer_resources_5', title: 'FAQs', path: '/faq', order: 4, visible: true },
+    ]
   }
 };
 
