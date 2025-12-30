@@ -29,6 +29,9 @@ import SEOSettings from "./pages/admin/SEOSettings";
 import BlogPage from "./pages/blog/BlogPage";
 import BlogPostPage from "./pages/blog/BlogPostPage";
 
+// Resources imports
+import AllBlogPage from "./pages/resources/AllBlogPage";
+
 // Analytics
 import { initGA, trackPageView } from "./lib/analytics";
 
@@ -67,6 +70,7 @@ const App = () => (
                 <Route path="contact" element={<ContactPage />} />
                 <Route path="partners" element={<PartnersPage />} />
                 <Route path="resources" element={<ResourcesPage />} />
+                <Route path="resources/all-blog" element={<AllBlogPage />} />
                 <Route path="resources/*" element={<ResourcesPage />} />
                 <Route path="blog" element={<BlogPage />} />
                 <Route path="blog/:slug" element={<BlogPostPage />} />
