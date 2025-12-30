@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin imports
 import { AuthProvider } from "./contexts/AuthContext";
+import { CMSProvider } from "./contexts/CMSContext";
 import AdminLayout from "./components/admin/AdminLayout";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -24,6 +25,8 @@ import BlogList from "./pages/admin/BlogList";
 import BlogEditor from "./pages/admin/BlogEditor";
 import ContentManager from "./pages/admin/ContentManager";
 import SEOSettings from "./pages/admin/SEOSettings";
+import PageList from "./pages/admin/PageList";
+import PageEditor from "./pages/admin/PageEditor";
 
 // Blog imports
 import BlogPostPage from "./pages/blog/BlogPostPage";
@@ -68,53 +71,57 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnalyticsTracker />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Layout />}>
-                <Route index element={<HomePage />} />
-                <Route path="products" element={<ProductsPage />} />
-                <Route path="about" element={<AboutPage />} />
-                <Route path="contact" element={<ContactPage />} />
-                <Route path="partners" element={<PartnersPage />} />
-                <Route path="resources" element={<ResourcesPage />} />
-                <Route path="resources/all-blog" element={<AllBlogPage />} />
-                <Route path="resources/*" element={<ResourcesPage />} />
-                <Route path="blog" element={<AllBlogPage />} />
-                <Route path="blog/:slug" element={<BlogPostPage />} />
-                <Route path="terms-of-service" element={<TermsOfServicePage />} />
-                <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="support" element={<SupportPage />} />
-                <Route path="faq" element={<FAQPage />} />
-                <Route path="documentation" element={<DocumentationPage />} />
-                <Route path="help-center" element={<HelpCenterPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
+        <CMSProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AnalyticsTracker />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="products" element={<ProductsPage />} />
+                  <Route path="about" element={<AboutPage />} />
+                  <Route path="contact" element={<ContactPage />} />
+                  <Route path="partners" element={<PartnersPage />} />
+                  <Route path="resources" element={<ResourcesPage />} />
+                  <Route path="resources/all-blog" element={<AllBlogPage />} />
+                  <Route path="resources/*" element={<ResourcesPage />} />
+                  <Route path="blog" element={<AllBlogPage />} />
+                  <Route path="blog/:slug" element={<BlogPostPage />} />
+                  <Route path="terms-of-service" element={<TermsOfServicePage />} />
+                  <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="support" element={<SupportPage />} />
+                  <Route path="faq" element={<FAQPage />} />
+                  <Route path="documentation" element={<DocumentationPage />} />
+                  <Route path="help-center" element={<HelpCenterPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
 
-              {/* Admin routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="blog" element={<BlogList />} />
-                <Route path="blog/new" element={<BlogEditor />} />
-                <Route path="blog/edit/:id" element={<BlogEditor />} />
-                <Route path="content" element={<ContentManager />} />
-                <Route path="seo" element={<SEOSettings />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+                {/* Admin routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="pages" element={<PageList />} />
+                  <Route path="pages/edit/:pageId" element={<PageEditor />} />
+                  <Route path="blog" element={<BlogList />} />
+                  <Route path="blog/new" element={<BlogEditor />} />
+                  <Route path="blog/edit/:id" element={<BlogEditor />} />
+                  <Route path="content" element={<ContentManager />} />
+                  <Route path="seo" element={<SEOSettings />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CMSProvider>
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>
