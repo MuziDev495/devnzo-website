@@ -109,15 +109,19 @@ const AllBlogPage: React.FC = () => {
                     key={post.id}
                     className="bg-card rounded-2xl shadow-md border border-border overflow-hidden hover:shadow-xl transition-all duration-300 group"
                   >
-                    {post.featuredImage && (
-                      <div className="aspect-video overflow-hidden">
+                    <div className="aspect-video overflow-hidden bg-muted">
+                      {post.featuredImage ? (
                         <img
                           src={post.featuredImage}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                          <Calendar className="w-12 h-12 text-primary/30" />
+                        </div>
+                      )}
+                    </div>
                     <div className="p-6">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                         <span className="flex items-center gap-1">
