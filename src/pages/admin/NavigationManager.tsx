@@ -499,14 +499,14 @@ const NavigationManager: React.FC = () => {
                     <div className="space-y-2">
                       <Label>Parent Item (for sub-menu)</Label>
                       <Select
-                        value={newItem.parentId}
-                        onValueChange={(value) => setNewItem({ ...newItem, parentId: value })}
+                        value={newItem.parentId || '__none__'}
+                        onValueChange={(value) => setNewItem({ ...newItem, parentId: value === '__none__' ? '' : value })}
                       >
                         <SelectTrigger className="bg-background">
                           <SelectValue placeholder="None (top level)" />
                         </SelectTrigger>
                         <SelectContent className="bg-card z-50">
-                          <SelectItem value="">None (top level)</SelectItem>
+                          <SelectItem value="__none__">None (top level)</SelectItem>
                           {topLevelItems.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.title}
