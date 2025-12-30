@@ -6,6 +6,12 @@ import TopPagesTable from './TopPagesTable';
 import TrafficSourcesChart from './TrafficSourcesChart';
 import DeviceStatsCard from './DeviceStatsCard';
 import { 
+  generateAnalyticsOverview, 
+  generateDailyTraffic, 
+  generateTopPages,
+  generateTrafficSources,
+  generateDeviceStats,
+  generateBrowserStats,
   formatDuration,
   formatNumber,
   AnalyticsOverview,
@@ -15,15 +21,6 @@ import {
   DeviceStat,
   BrowserStat
 } from '@/lib/analyticsData';
-import {
-  fetchAnalyticsOverview,
-  fetchDailyTraffic,
-  fetchTopPages,
-  fetchTrafficSources,
-  fetchDeviceStats,
-  fetchBrowserStats,
-  fetchLiveVisitors
-} from '@/lib/analyticsFirestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
@@ -38,38 +35,18 @@ const AnalyticsDashboard: React.FC = () => {
   const [browsers, setBrowsers] = useState<BrowserStat[]>([]);
 
   useEffect(() => {
-    const loadData = async () => {
+    // Simulate loading analytics data
+    const loadData = () => {
       setLoading(true);
-      try {
-        const days = parseInt(dateRange);
-        
-        const [
-          overviewData,
-          traffic,
-          pages,
-          sources,
-          deviceStats,
-          browserStats
-        ] = await Promise.all([
-          fetchAnalyticsOverview(days),
-          fetchDailyTraffic(days),
-          fetchTopPages(days),
-          fetchTrafficSources(days),
-          fetchDeviceStats(days),
-          fetchBrowserStats(days)
-        ]);
-
-        setOverview(overviewData);
-        setTrafficData(traffic);
-        setTopPages(pages);
-        setTrafficSources(sources);
-        setDevices(deviceStats);
-        setBrowsers(browserStats);
-      } catch (error) {
-        console.error('Error loading analytics:', error);
-      } finally {
+      setTimeout(() => {
+        setOverview(generateAnalyticsOverview());
+        setTrafficData(generateDailyTraffic(parseInt(dateRange)));
+        setTopPages(generateTopPages());
+        setTrafficSources(generateTrafficSources());
+        setDevices(generateDeviceStats());
+        setBrowsers(generateBrowserStats());
         setLoading(false);
-      }
+      }, 800);
     };
 
     loadData();
@@ -77,18 +54,15 @@ const AnalyticsDashboard: React.FC = () => {
 
   // Update live visitors periodically
   useEffect(() => {
-    const updateLiveVisitors = async () => {
-      try {
-        const liveCount = await fetchLiveVisitors();
-        setOverview(prev => prev ? { ...prev, liveVisitors: liveCount } : null);
-      } catch (error) {
-        console.error('Error fetching live visitors:', error);
+    const interval = setInterval(() => {
+      if (overview) {
+        const newLiveVisitors = Math.max(1, overview.liveVisitors + Math.floor(Math.random() * 5) - 2);
+        setOverview(prev => prev ? { ...prev, liveVisitors: newLiveVisitors } : null);
       }
-    };
+    }, 5000);
 
-    const interval = setInterval(updateLiveVisitors, 30000); // Every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [overview]);
 
   if (loading) {
     return (
@@ -123,6 +97,7 @@ const AnalyticsDashboard: React.FC = () => {
       <div className="flex items-center gap-2">
         <Activity className="h-5 w-5 text-primary" />
         <h2 className="text-xl font-semibold">Website Analytics</h2>
+        <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">Demo Data</span>
       </div>
 
       {/* Overview Stats */}

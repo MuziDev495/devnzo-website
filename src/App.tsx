@@ -42,7 +42,7 @@ import DocumentationPage from "./pages/DocumentationPage";
 import HelpCenterPage from "./pages/HelpCenterPage";
 
 // Analytics
-import { initGA, trackPageView, trackPageViewToFirestore } from "./lib/analytics";
+import { initGA, trackPageView } from "./lib/analytics";
 
 const queryClient = new QueryClient();
 
@@ -55,12 +55,7 @@ const AnalyticsTracker = () => {
   }, []);
 
   useEffect(() => {
-    // Track to Google Analytics
     trackPageView(location.pathname);
-    
-    // Track to Firestore for admin dashboard
-    const pageTitle = document.title || 'Devnzo';
-    trackPageViewToFirestore(location.pathname, pageTitle);
   }, [location]);
 
   return null;
