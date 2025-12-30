@@ -36,6 +36,12 @@ import AllBlogPage from "./pages/resources/AllBlogPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
+// Support pages
+import SupportPage from "./pages/SupportPage";
+import FAQPage from "./pages/FAQPage";
+import DocumentationPage from "./pages/DocumentationPage";
+import HelpCenterPage from "./pages/HelpCenterPage";
+
 // Analytics
 import { initGA, trackPageView } from "./lib/analytics";
 
@@ -80,6 +86,10 @@ const App = () => (
                 <Route path="blog/:slug" element={<BlogPostPage />} />
                 <Route path="terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="support" element={<SupportPage />} />
+                <Route path="faq" element={<FAQPage />} />
+                <Route path="documentation" element={<DocumentationPage />} />
+                <Route path="help-center" element={<HelpCenterPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
 
