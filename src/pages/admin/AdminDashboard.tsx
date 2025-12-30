@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Eye, PenLine, Plus } from 'lucide-react';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import { format } from 'date-fns';
 
 interface BlogPost {
@@ -131,6 +132,9 @@ const AdminDashboard: React.FC = () => {
           </Card>
         ))}
       </div>
+
+      {/* Analytics Dashboard */}
+      <AnalyticsDashboard />
 
       {/* Recent Posts */}
       <Card>
