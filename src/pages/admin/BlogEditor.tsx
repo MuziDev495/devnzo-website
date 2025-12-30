@@ -192,6 +192,7 @@ const BlogEditor: React.FC = () => {
       const postData = {
         ...formData,
         status,
+        published: status === 'published', // Add boolean for backward compatibility
         updatedAt: serverTimestamp(),
         ...(isEditing ? {} : { createdAt: serverTimestamp() })
       };

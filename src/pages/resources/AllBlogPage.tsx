@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Helmet } from 'react-helmet-async';
 import { Calendar, ArrowRight, Clock } from 'lucide-react';
@@ -28,9 +28,9 @@ const AllBlogPage: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        // Query for posts with status='published' OR published=true (for backward compatibility)
         const q = query(
           collection(db, 'blog_posts'),
-          where('published', '==', true),
           orderBy('createdAt', 'desc')
         );
         
@@ -39,15 +39,19 @@ const AllBlogPage: React.FC = () => {
         
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          fetchedPosts.push({
-            id: doc.id,
-            title: data.title,
-            slug: data.slug,
-            excerpt: data.excerpt,
-            featuredImage: data.featuredImage,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            readTime: data.readTime || '5 min read',
-          });
+          // Check for both 'status' field (new) and 'published' field (seed data)
+          const isPublished = data.status === 'published' || data.published === true;
+          if (isPublished) {
+            fetchedPosts.push({
+              id: doc.id,
+              title: data.title,
+              slug: data.slug,
+              excerpt: data.excerpt,
+              featuredImage: data.featuredImage,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              readTime: data.readTime || '5 min read',
+            });
+          }
         });
         
         setPosts(fetchedPosts);
