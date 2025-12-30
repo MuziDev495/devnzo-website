@@ -34,6 +34,7 @@ import AllBlogPage from "./pages/resources/AllBlogPage";
 
 // Legal pages
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 // Analytics
 import { initGA, trackPageView } from "./lib/analytics";
@@ -78,6 +79,7 @@ const App = () => (
                 <Route path="blog" element={<BlogPage />} />
                 <Route path="blog/:slug" element={<BlogPostPage />} />
                 <Route path="terms-of-service" element={<TermsOfServicePage />} />
+                <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
 
