@@ -30,9 +30,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, Search } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, Search, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { seedBlogPosts } from '@/utils/seedBlogPosts';
 
 interface BlogPost {
   id: string;
@@ -48,9 +49,33 @@ const BlogList: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [deletePostId, setDeletePostId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const handleSeedPosts = async () => {
+    setSeeding(true);
+    try {
+      const result = await seedBlogPosts();
+      toast({
+        title: result.success ? "Success" : "Info",
+        description: result.message,
+        variant: result.success ? "default" : "destructive"
+      });
+      if (result.success) {
+        fetchPosts();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to seed blog posts",
+        variant: "destructive"
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -147,12 +172,22 @@ const BlogList: React.FC = () => {
           <h1 className="text-3xl font-bold">Blog Posts</h1>
           <p className="text-muted-foreground">Manage your blog content</p>
         </div>
-        <Button asChild className="bg-gradient-primary hover:opacity-90">
-          <Link to="/admin/blog/new">
-            <Plus className="h-4 w-4 mr-2" />
-            New Post
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleSeedPosts}
+            disabled={seeding}
+          >
+            <Database className="h-4 w-4 mr-2" />
+            {seeding ? 'Seeding...' : 'Seed Demo Posts'}
+          </Button>
+          <Button asChild className="bg-gradient-primary hover:opacity-90">
+            <Link to="/admin/blog/new">
+              <Plus className="h-4 w-4 mr-2" />
+              New Post
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
