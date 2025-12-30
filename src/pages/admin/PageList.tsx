@@ -577,29 +577,13 @@ const PageList: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Included Sections</Label>
-                  <div className="space-y-1">
-                    {selectedTemplate.sections.map((section) => (
-                      <div key={section.key} className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded">
-                        <Eye className="h-4 w-4 text-primary" />
-                        <span className="font-medium">{section.label}</span>
-                        <span className="text-muted-foreground">- {section.description}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedTemplate.id === 'custom' && (
-                  <Card className="border-warning/50 bg-warning/5">
-                    <CardContent className="pt-4">
-                      <p className="text-sm">
-                        <strong>Note:</strong> Custom pages require a developer to create the React component. 
-                        The page will be registered in the CMS but won't display until the component is created.
-                      </p>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      After creating the page, you'll be redirected to the full editor where you can add content, images, and configure sections.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             )}
 
