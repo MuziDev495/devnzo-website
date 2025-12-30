@@ -313,7 +313,7 @@ const PrivacyPolicyPage = () => {
               contact@devnzo.com
             </a>
             <p className="text-sm text-muted-foreground mt-4">
-              Devnzo Inc. • San Francisco, California
+              Devnzo Inc. • 34 N Franklin Ave Ste 687, Pinedale, WY, 82941
             </p>
           </div>
         </div>
