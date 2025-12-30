@@ -26,7 +26,6 @@ import ContentManager from "./pages/admin/ContentManager";
 import SEOSettings from "./pages/admin/SEOSettings";
 
 // Blog imports
-import BlogPage from "./pages/blog/BlogPage";
 import BlogPostPage from "./pages/blog/BlogPostPage";
 
 // Resources imports
@@ -82,7 +81,7 @@ const App = () => (
                 <Route path="resources" element={<ResourcesPage />} />
                 <Route path="resources/all-blog" element={<AllBlogPage />} />
                 <Route path="resources/*" element={<ResourcesPage />} />
-                <Route path="blog" element={<BlogPage />} />
+                <Route path="blog" element={<AllBlogPage />} />
                 <Route path="blog/:slug" element={<BlogPostPage />} />
                 <Route path="terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="privacy-policy" element={<PrivacyPolicyPage />} />

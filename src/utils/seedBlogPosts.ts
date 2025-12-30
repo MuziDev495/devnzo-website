@@ -8,127 +8,163 @@ import { db } from '@/lib/firebase';
 
 const demoBlogPosts = [
   {
-    title: 'The Ultimate Guide to Shopify SEO in 2025',
-    slug: 'ultimate-guide-shopify-seo-2025',
-    excerpt: 'Learn how to optimize your Shopify store for search engines and drive more organic traffic. This comprehensive guide covers everything from keyword research to technical SEO.',
-    content: `<h2>Introduction to Shopify SEO</h2>
-<p>Search engine optimization (SEO) is crucial for any e-commerce business. With millions of Shopify stores competing for attention, having a solid SEO strategy can make the difference between success and obscurity.</p>
+    title: '10 Ways to Boost Your E-commerce Sales in 2024',
+    slug: '10-ways-boost-ecommerce-sales-2024',
+    excerpt: 'Discover proven strategies to increase your online store revenue and customer engagement.',
+    content: `<h2>Introduction</h2>
+<p>In today's competitive e-commerce landscape, standing out requires more than just having great products. You need smart strategies that drive traffic, convert visitors, and build lasting customer relationships.</p>
 
-<h2>Keyword Research</h2>
-<p>Start by identifying the keywords your target customers are searching for. Use tools like Google Keyword Planner, Ahrefs, or SEMrush to discover high-value keywords in your niche.</p>
+<h2>1. Optimize Your Product Pages</h2>
+<p>Your product pages are your digital salespeople. Ensure they have high-quality images, detailed descriptions, and clear calls-to-action.</p>
 
-<h2>On-Page Optimization</h2>
-<p>Optimize your product titles, descriptions, and meta tags with your target keywords. Make sure your URLs are clean and descriptive.</p>
+<h2>2. Implement Email Marketing Automation</h2>
+<p>Set up automated email sequences for abandoned carts, welcome series, and post-purchase follow-ups to maximize revenue.</p>
 
-<h2>Technical SEO</h2>
-<p>Ensure your store loads quickly, is mobile-friendly, and has proper schema markup. These technical factors significantly impact your search rankings.</p>
+<h2>3. Leverage Social Proof</h2>
+<p>Display customer reviews, ratings, and user-generated content to build trust with potential buyers.</p>
 
-<h2>Content Marketing</h2>
-<p>Create valuable blog content that attracts and engages your target audience. This builds authority and drives organic traffic to your store.</p>`,
+<h2>4. Offer Multiple Payment Options</h2>
+<p>From credit cards to digital wallets, give customers the flexibility to pay how they prefer.</p>
+
+<h2>5. Focus on Mobile Experience</h2>
+<p>With over 60% of e-commerce traffic coming from mobile devices, a seamless mobile experience is essential.</p>`,
     featuredImage: 'https://images.pexels.com/photos/265087/pexels-photo-265087.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'E-commerce',
+    author: 'John Smith',
     published: true,
     readTime: '8 min read',
-    seoTitle: 'The Ultimate Guide to Shopify SEO in 2025 | Devnzo',
-    seoDescription: 'Master Shopify SEO with our comprehensive 2025 guide. Learn keyword research, on-page optimization, and technical SEO strategies.',
+    seoTitle: '10 Ways to Boost Your E-commerce Sales in 2024 | Devnzo',
+    seoDescription: 'Discover proven strategies to increase your online store revenue and customer engagement.',
   },
   {
-    title: '10 Essential Shopify Apps Every Store Needs',
-    slug: '10-essential-shopify-apps',
-    excerpt: 'Discover the must-have Shopify apps that will help you boost sales, improve customer experience, and streamline your operations.',
-    content: `<h2>Why Apps Matter</h2>
-<p>Shopify apps extend the functionality of your store, helping you automate tasks, improve customer experience, and increase conversions.</p>
+    title: 'The Future of AI in E-commerce',
+    slug: 'future-ai-ecommerce',
+    excerpt: 'How artificial intelligence is transforming the online shopping experience.',
+    content: `<h2>AI Revolution in E-commerce</h2>
+<p>Artificial intelligence is no longer a futuristic concept—it's reshaping how we shop online today. From personalized recommendations to chatbots, AI is everywhere.</p>
 
-<h2>1. Email Marketing Apps</h2>
-<p>Email marketing remains one of the highest ROI channels. Apps like Klaviyo and Omnisend help you create targeted campaigns.</p>
+<h2>Personalized Product Recommendations</h2>
+<p>AI algorithms analyze customer behavior to suggest products they're most likely to purchase, increasing conversion rates significantly.</p>
 
-<h2>2. Review Apps</h2>
-<p>Social proof is powerful. Apps like Judge.me and Loox help you collect and display customer reviews effectively.</p>
+<h2>Intelligent Chatbots</h2>
+<p>24/7 customer support powered by AI can handle common queries, process orders, and provide instant assistance.</p>
 
-<h2>3. SEO Apps</h2>
-<p>Optimize your store for search engines with apps that help you manage meta tags, fix broken links, and improve site structure.</p>
+<h2>Visual Search Technology</h2>
+<p>Customers can now search for products using images instead of text, making discovery more intuitive.</p>
 
-<h2>4. Analytics Apps</h2>
-<p>Understand your customers better with advanced analytics tools that go beyond Shopify's built-in reporting.</p>
-
-<h2>5. Customer Support Apps</h2>
-<p>Provide excellent customer service with live chat and help desk solutions integrated directly into your store.</p>`,
-    featuredImage: 'https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg?auto=compress&cs=tinysrgb&w=800',
+<h2>Dynamic Pricing</h2>
+<p>AI-powered pricing strategies adjust prices in real-time based on demand, competition, and inventory levels.</p>`,
+    featuredImage: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Technology',
+    author: 'Sarah Johnson',
     published: true,
     readTime: '6 min read',
-    seoTitle: '10 Essential Shopify Apps Every Store Needs | Devnzo',
-    seoDescription: 'Discover the top 10 Shopify apps that will transform your e-commerce store. From email marketing to analytics.',
+    seoTitle: 'The Future of AI in E-commerce | Devnzo',
+    seoDescription: 'How artificial intelligence is transforming the online shopping experience.',
   },
   {
-    title: 'How to Increase Your Shopify Store Conversion Rate',
-    slug: 'increase-shopify-conversion-rate',
-    excerpt: 'Practical strategies to convert more visitors into customers. Learn proven techniques to optimize your product pages and checkout process.',
-    content: `<h2>Understanding Conversion Rate</h2>
-<p>Your conversion rate is the percentage of visitors who complete a purchase. Even small improvements can significantly impact your revenue.</p>
+    title: 'Mastering Social Media Marketing',
+    slug: 'mastering-social-media-marketing',
+    excerpt: 'A comprehensive guide to leveraging social media for your business growth.',
+    content: `<h2>The Power of Social Media</h2>
+<p>Social media platforms offer unprecedented access to your target audience. Learn how to leverage these channels for maximum impact.</p>
 
-<h2>Optimize Product Pages</h2>
-<p>Use high-quality images, compelling descriptions, and clear calls-to-action. Include social proof like reviews and testimonials.</p>
+<h2>Choosing the Right Platforms</h2>
+<p>Not every platform is right for every business. Focus on where your target audience spends their time.</p>
 
-<h2>Streamline Checkout</h2>
-<p>Remove friction from the checkout process. Offer guest checkout, multiple payment options, and clear shipping information.</p>
+<h2>Creating Engaging Content</h2>
+<p>From videos to stories to posts, learn what types of content resonate with your audience and drive engagement.</p>
 
-<h2>Build Trust</h2>
-<p>Display security badges, clear return policies, and customer testimonials. Trust is essential for e-commerce conversions.</p>
+<h2>Building Community</h2>
+<p>Social media is about building relationships. Engage with your followers and create a community around your brand.</p>
 
-<h2>Mobile Optimization</h2>
-<p>Ensure your store provides an excellent mobile experience. Over 50% of e-commerce traffic comes from mobile devices.</p>`,
-    featuredImage: 'https://images.pexels.com/photos/67112/pexels-photo-67112.jpeg?auto=compress&cs=tinysrgb&w=800',
+<h2>Measuring Success</h2>
+<p>Track the right metrics to understand what's working and optimize your strategy accordingly.</p>`,
+    featuredImage: 'https://images.pexels.com/photos/607812/pexels-photo-607812.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Marketing',
+    author: 'Mike Wilson',
+    published: true,
+    readTime: '10 min read',
+    seoTitle: 'Mastering Social Media Marketing | Devnzo',
+    seoDescription: 'A comprehensive guide to leveraging social media for your business growth.',
+  },
+  {
+    title: 'Design Trends for 2024',
+    slug: 'design-trends-2024',
+    excerpt: 'Stay ahead of the curve with these emerging design trends in e-commerce.',
+    content: `<h2>The Evolution of E-commerce Design</h2>
+<p>Design trends evolve rapidly. Stay ahead of your competition by implementing these cutting-edge design principles.</p>
+
+<h2>Minimalist Aesthetics</h2>
+<p>Clean, simple designs with plenty of white space help products stand out and improve user experience.</p>
+
+<h2>Dark Mode Support</h2>
+<p>Offering a dark mode option caters to user preferences and can reduce eye strain.</p>
+
+<h2>Micro-interactions</h2>
+<p>Small, delightful animations make your site feel more responsive and engaging.</p>
+
+<h2>3D Product Visualization</h2>
+<p>Allow customers to interact with 3D models of products for a more immersive shopping experience.</p>`,
+    featuredImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Design',
+    author: 'Emily Brown',
     published: true,
     readTime: '7 min read',
-    seoTitle: 'How to Increase Your Shopify Store Conversion Rate | Devnzo',
-    seoDescription: 'Learn proven strategies to boost your Shopify store conversion rate. Optimize product pages, streamline checkout, and more.',
+    seoTitle: 'Design Trends for 2024 | Devnzo',
+    seoDescription: 'Stay ahead of the curve with these emerging design trends in e-commerce.',
   },
   {
-    title: 'Building a Successful Dropshipping Business in 2025',
-    slug: 'successful-dropshipping-business-2025',
-    excerpt: 'Everything you need to know about starting and scaling a dropshipping business. From finding suppliers to marketing your products.',
-    content: `<h2>What is Dropshipping?</h2>
-<p>Dropshipping is a retail fulfillment method where you don't keep products in stock. Instead, you purchase items from a third party and ship directly to customers.</p>
+    title: 'Optimizing Your Store for Mobile',
+    slug: 'optimizing-store-mobile',
+    excerpt: 'Essential tips for creating a seamless mobile shopping experience.',
+    content: `<h2>Mobile-First is Essential</h2>
+<p>With mobile commerce growing every year, optimizing for mobile isn't optional—it's essential for success.</p>
 
-<h2>Finding the Right Niche</h2>
-<p>Choose a niche that has demand but isn't oversaturated. Look for products with good margins and passionate audiences.</p>
+<h2>Responsive Design</h2>
+<p>Ensure your site looks and functions perfectly on all screen sizes and devices.</p>
 
-<h2>Supplier Selection</h2>
-<p>Partner with reliable suppliers who offer quality products and fast shipping. Consider using platforms like Spocket or DSers.</p>
+<h2>Fast Loading Times</h2>
+<p>Mobile users expect speed. Optimize images, minimize code, and use caching to improve load times.</p>
 
-<h2>Marketing Strategies</h2>
-<p>Focus on building a strong brand and using targeted advertising. Social media marketing and influencer partnerships can be highly effective.</p>
+<h2>Touch-Friendly Navigation</h2>
+<p>Design buttons and navigation elements that are easy to tap with fingers, not just click with a mouse.</p>
 
-<h2>Customer Service</h2>
-<p>Provide excellent customer service to build loyalty and encourage repeat purchases. Respond quickly to inquiries and handle issues professionally.</p>`,
-    featuredImage: 'https://images.pexels.com/photos/4386476/pexels-photo-4386476.jpeg?auto=compress&cs=tinysrgb&w=800',
+<h2>Simplified Checkout</h2>
+<p>Reduce friction in the mobile checkout process with auto-fill, digital wallets, and minimal form fields.</p>`,
+    featuredImage: 'https://images.pexels.com/photos/38544/imac-apple-mockup-app-38544.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Development',
+    author: 'David Lee',
     published: true,
     readTime: '9 min read',
-    seoTitle: 'Building a Successful Dropshipping Business in 2025 | Devnzo',
-    seoDescription: 'Complete guide to starting a profitable dropshipping business in 2025. Learn about niche selection, suppliers, and marketing.',
+    seoTitle: 'Optimizing Your Store for Mobile | Devnzo',
+    seoDescription: 'Essential tips for creating a seamless mobile shopping experience.',
   },
   {
-    title: 'Email Marketing Best Practices for E-commerce',
-    slug: 'email-marketing-best-practices-ecommerce',
-    excerpt: 'Master email marketing for your online store. Learn how to build your list, create engaging campaigns, and drive repeat purchases.',
-    content: `<h2>The Power of Email Marketing</h2>
-<p>Email marketing offers one of the highest ROIs of any marketing channel. For e-commerce, it's essential for customer retention and repeat sales.</p>
+    title: 'Building Customer Loyalty',
+    slug: 'building-customer-loyalty',
+    excerpt: 'Strategies to create lasting relationships with your customers.',
+    content: `<h2>Why Loyalty Matters</h2>
+<p>Acquiring new customers costs 5x more than retaining existing ones. Invest in loyalty programs and customer relationships.</p>
 
-<h2>Building Your Email List</h2>
-<p>Use pop-ups, exit-intent offers, and landing pages to capture email addresses. Offer incentives like discounts or free shipping.</p>
+<h2>Create a Loyalty Program</h2>
+<p>Reward repeat customers with points, discounts, and exclusive perks to keep them coming back.</p>
 
-<h2>Segmentation</h2>
-<p>Segment your list based on behavior, purchase history, and preferences. Personalized emails have much higher open and click rates.</p>
+<h2>Exceptional Customer Service</h2>
+<p>Go above and beyond to resolve issues quickly and make customers feel valued.</p>
 
-<h2>Automated Flows</h2>
-<p>Set up automated email sequences for welcome series, abandoned cart recovery, post-purchase follow-ups, and win-back campaigns.</p>
+<h2>Personalized Experiences</h2>
+<p>Use customer data to create personalized recommendations, offers, and communications.</p>
 
-<h2>Testing and Optimization</h2>
-<p>Continuously test subject lines, content, and send times. Use A/B testing to improve your email performance over time.</p>`,
-    featuredImage: 'https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg?auto=compress&cs=tinysrgb&w=800',
+<h2>Build Community</h2>
+<p>Create spaces for customers to connect with each other and your brand through social media, forums, and events.</p>`,
+    featuredImage: 'https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=800',
+    category: 'Business',
+    author: 'Lisa Chen',
     published: true,
-    readTime: '6 min read',
-    seoTitle: 'Email Marketing Best Practices for E-commerce | Devnzo',
-    seoDescription: 'Learn email marketing best practices specifically for e-commerce stores. Build your list, segment, and automate for success.',
+    readTime: '5 min read',
+    seoTitle: 'Building Customer Loyalty | Devnzo',
+    seoDescription: 'Strategies to create lasting relationships with your customers.',
   },
 ];
 
