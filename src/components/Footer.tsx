@@ -1,11 +1,11 @@
 /**
  * Footer Component
- * Site-wide footer with company information, links, and social media
+ * Site-wide footer with dynamic content from CMS
  */
 
 import { Link } from "react-router-dom";
 import { Globe, MessageSquare, Award } from "lucide-react";
-import { FOOTER_LINKS } from "@/types/routes";
+import { useCMS } from "@/contexts/CMSContext";
 
 // Social Media Icons Component
 const SocialIcon = ({ iconType, className }: { iconType: string; className?: string }) => {
@@ -62,9 +62,13 @@ const SocialIcon = ({ iconType, className }: { iconType: string; className?: str
 };
 
 const Footer = () => {
-  const companyLinks = FOOTER_LINKS.filter((link) => link.section === "Company");
-  const resourceLinks = FOOTER_LINKS.filter((link) => link.section === "Resources");
-  const connectLinks = FOOTER_LINKS.filter((link) => link.section === "Connect");
+  const { footer, loading } = useCMS();
+
+  const companyLinks = footer?.company || [];
+  const resourceLinks = footer?.resources || [];
+  const socialLinks = footer?.social || [];
+  const description = footer?.description || 'Empowering businesses with innovative solutions for sustainable growth and success.';
+  const copyright = footer?.copyright || '© 2026 Devnzo. All rights reserved.';
 
   return (
     <footer className="bg-[hsl(222,47%,11%)] text-[hsl(220,14%,76%)] py-16">
@@ -76,7 +80,7 @@ const Footer = () => {
               <span className="text-2xl font-bold gradient-text-hero">Devnzo</span>
             </div>
             <p className="text-[hsl(220,9%,60%)] mb-6 leading-relaxed">
-              Empowering businesses with innovative solutions for sustainable growth and success.
+              {description}
             </p>
             <div className="flex space-x-4">
               <div className="w-10 h-10 bg-[hsl(220,20%,18%)] rounded-full flex items-center justify-center hover:bg-primary transition-colors cursor-pointer">
@@ -123,7 +127,7 @@ const Footer = () => {
           <div className="col-span-3 md:col-span-1">
             <h3 className="text-primary-foreground font-semibold mb-6">Connect</h3>
             <div className="flex gap-3 flex-wrap">
-              {connectLinks.map((link) => (
+              {socialLinks.map((link) => (
                 <a
                   key={link.path}
                   href={link.path}
@@ -144,7 +148,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-[hsl(220,20%,18%)] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-[hsl(220,9%,60%)] text-sm">© 2026 Devnzo. All rights reserved.</p>
+          <p className="text-[hsl(220,9%,60%)] text-sm">{copyright}</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/privacy-policy" className="text-[hsl(220,9%,60%)] hover:text-primary text-sm transition-colors">
               Privacy Policy
