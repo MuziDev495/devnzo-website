@@ -27,6 +27,7 @@ import ContentManager from "./pages/admin/ContentManager";
 import SEOSettings from "./pages/admin/SEOSettings";
 import PageList from "./pages/admin/PageList";
 import PageEditor from "./pages/admin/PageEditor";
+import NavigationManager from "./pages/admin/NavigationManager";
 
 // Blog imports
 import BlogPostPage from "./pages/blog/BlogPostPage";
@@ -115,6 +116,7 @@ const App = () => (
                   <Route path="blog" element={<BlogList />} />
                   <Route path="blog/new" element={<BlogEditor />} />
                   <Route path="blog/edit/:id" element={<BlogEditor />} />
+                  <Route path="navigation" element={<NavigationManager />} />
                   <Route path="content" element={<ContentManager />} />
                   <Route path="seo" element={<SEOSettings />} />
                 </Route>

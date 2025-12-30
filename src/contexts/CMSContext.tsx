@@ -7,11 +7,28 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+export interface MenuItem {
+  id: string;
+  title: string;
+  path: string;
+  order: number;
+  parentId?: string;
+  openInNewTab?: boolean;
+  visible: boolean;
+  children?: MenuItem[];
+}
+
+export interface MenuData {
+  name: string;
+  items: MenuItem[];
+}
+
 interface NavItem {
   title: string;
   path: string;
   visible?: boolean;
   order?: number;
+  children?: MenuItem[];
 }
 
 interface SocialLink {
@@ -38,6 +55,7 @@ interface NavigationData {
 interface CMSContextType {
   navigation: NavigationData | null;
   footer: FooterData | null;
+  menus: { [key: string]: MenuData } | null;
   loading: boolean;
   refreshCMS: () => Promise<void>;
 }
@@ -82,6 +100,7 @@ const defaultFooter: FooterData = {
 const CMSContext = createContext<CMSContextType>({
   navigation: defaultNavigation,
   footer: defaultFooter,
+  menus: null,
   loading: true,
   refreshCMS: async () => {}
 });
@@ -91,7 +110,19 @@ export const useCMS = () => useContext(CMSContext);
 export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [navigation, setNavigation] = useState<NavigationData | null>(defaultNavigation);
   const [footer, setFooter] = useState<FooterData | null>(defaultFooter);
+  const [menus, setMenus] = useState<{ [key: string]: MenuData } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Build menu tree from flat items
+  const buildMenuTree = (items: MenuItem[]): MenuItem[] => {
+    const sortedItems = [...items].sort((a, b) => a.order - b.order);
+    const topLevelItems = sortedItems.filter(item => !item.parentId && item.visible !== false);
+    
+    return topLevelItems.map(parent => ({
+      ...parent,
+      children: sortedItems.filter(child => child.parentId === parent.id && child.visible !== false)
+    }));
+  };
 
   const fetchCMSData = async () => {
     try {
@@ -101,68 +132,107 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // Start with navigation items from CMS
-        let navItems: NavItem[] = [];
-        if (data.navigation) {
-          navItems = data.navigation.main?.filter((item: NavItem) => item.visible !== false) || [];
-        }
-        
-        // Merge in pages that have showInHeader: true
-        if (data.pages) {
-          const pageEntries = Object.entries(data.pages) as [string, any][];
-          const headerPages = pageEntries
-            .filter(([_, page]) => page.showInHeader && page.isActive)
-            .map(([_, page]) => ({
-              title: page.title || page.path?.replace('/', ''),
-              path: page.path,
-              order: page.headerOrder ?? 99,
-              visible: true
-            }));
-          navItems = [...navItems, ...headerPages];
-        }
-        
-        setNavigation({
-          main: navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0)),
-          ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
-          ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
-        });
-        
-        // Start with footer items from CMS
-        let companyLinks: NavItem[] = data.footer?.company || defaultFooter.company;
-        let resourceLinks: NavItem[] = data.footer?.resources || defaultFooter.resources;
-        
-        // Merge in pages that have footer flags
-        if (data.pages) {
-          const pageEntries = Object.entries(data.pages) as [string, any][];
+        // Load menus data
+        if (data.menus) {
+          setMenus(data.menus);
           
-          const footerCompanyPages = pageEntries
-            .filter(([_, page]) => page.showInFooterCompany && page.isActive)
-            .map(([_, page]) => ({
-              title: page.title || page.path?.replace('/', ''),
-              path: page.path,
-              order: page.footerOrder ?? 99
+          // Build navigation from header menu
+          if (data.menus.header?.items) {
+            const menuTree = buildMenuTree(data.menus.header.items);
+            const navItems = menuTree.map(item => ({
+              title: item.title,
+              path: item.path,
+              visible: item.visible,
+              order: item.order,
+              children: item.children
             }));
+            
+            setNavigation({
+              main: navItems,
+              ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
+              ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
+            });
+          }
           
-          const footerResourcePages = pageEntries
-            .filter(([_, page]) => page.showInFooterResources && page.isActive)
-            .map(([_, page]) => ({
-              title: page.title || page.path?.replace('/', ''),
-              path: page.path,
-              order: page.footerOrder ?? 99
-            }));
+          // Build footer from footer menus
+          const footerCompany = data.menus.footerCompany?.items
+            ?.filter((item: MenuItem) => item.visible !== false)
+            ?.sort((a: MenuItem, b: MenuItem) => a.order - b.order)
+            ?.map((item: MenuItem) => ({ title: item.title, path: item.path })) || defaultFooter.company;
+            
+          const footerResources = data.menus.footerResources?.items
+            ?.filter((item: MenuItem) => item.visible !== false)
+            ?.sort((a: MenuItem, b: MenuItem) => a.order - b.order)
+            ?.map((item: MenuItem) => ({ title: item.title, path: item.path })) || defaultFooter.resources;
           
-          companyLinks = [...companyLinks, ...footerCompanyPages];
-          resourceLinks = [...resourceLinks, ...footerResourcePages];
-        }
-        
-        if (data.footer) {
           setFooter({
-            company: companyLinks,
-            resources: resourceLinks,
-            social: data.footer.social?.filter((item: SocialLink) => item.visible !== false) || defaultFooter.social,
-            description: data.footer.description || defaultFooter.description,
-            copyright: data.footer.copyright || defaultFooter.copyright
+            company: footerCompany,
+            resources: footerResources,
+            social: data.footer?.social?.filter((item: SocialLink) => item.visible !== false) || defaultFooter.social,
+            description: data.footer?.description || defaultFooter.description,
+            copyright: data.footer?.copyright || defaultFooter.copyright
           });
+        } else {
+          // Legacy: Load from old navigation/footer structure
+          let navItems: NavItem[] = [];
+          if (data.navigation) {
+            navItems = data.navigation.main?.filter((item: NavItem) => item.visible !== false) || [];
+          }
+          
+          if (data.pages) {
+            const pageEntries = Object.entries(data.pages) as [string, any][];
+            const headerPages = pageEntries
+              .filter(([_, page]) => page.showInHeader && page.isActive)
+              .map(([_, page]) => ({
+                title: page.title || page.path?.replace('/', ''),
+                path: page.path,
+                order: page.headerOrder ?? 99,
+                visible: true
+              }));
+            navItems = [...navItems, ...headerPages];
+          }
+          
+          setNavigation({
+            main: navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0)),
+            ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
+            ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
+          });
+          
+          let companyLinks: NavItem[] = data.footer?.company || defaultFooter.company;
+          let resourceLinks: NavItem[] = data.footer?.resources || defaultFooter.resources;
+          
+          if (data.pages) {
+            const pageEntries = Object.entries(data.pages) as [string, any][];
+            
+            const footerCompanyPages = pageEntries
+              .filter(([_, page]) => page.showInFooterCompany && page.isActive)
+              .map(([_, page]) => ({
+                title: page.title || page.path?.replace('/', ''),
+                path: page.path,
+                order: page.footerOrder ?? 99
+              }));
+            
+            const footerResourcePages = pageEntries
+              .filter(([_, page]) => page.showInFooterResources && page.isActive)
+              .map(([_, page]) => ({
+                title: page.title || page.path?.replace('/', ''),
+                path: page.path,
+                order: page.footerOrder ?? 99
+              }));
+            
+            companyLinks = [...companyLinks, ...footerCompanyPages];
+            resourceLinks = [...resourceLinks, ...footerResourcePages];
+          }
+          
+          if (data.footer) {
+            setFooter({
+              company: companyLinks,
+              resources: resourceLinks,
+              social: data.footer.social?.filter((item: SocialLink) => item.visible !== false) || defaultFooter.social,
+              description: data.footer.description || defaultFooter.description,
+              copyright: data.footer.copyright || defaultFooter.copyright
+            });
+          }
         }
       }
     } catch (error) {
@@ -177,7 +247,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <CMSContext.Provider value={{ navigation, footer, loading, refreshCMS: fetchCMSData }}>
+    <CMSContext.Provider value={{ navigation, footer, menus, loading, refreshCMS: fetchCMSData }}>
       {children}
     </CMSContext.Provider>
   );

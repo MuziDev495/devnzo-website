@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu,
   X,
-  FileStack
+  FileStack,
+  Navigation
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { path: '/admin/pages', icon: FileStack, label: 'Pages', end: false },
   { path: '/admin/blog', icon: FileText, label: 'Blog Posts', end: false },
+  { path: '/admin/navigation', icon: Navigation, label: 'Navigation', end: false },
   { path: '/admin/content', icon: Settings, label: 'Content Manager', end: false },
   { path: '/admin/seo', icon: Search, label: 'SEO Settings', end: false },
 ];
