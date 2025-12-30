@@ -95,6 +95,9 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
             <div className="mb-3 px-4">
               <p className="text-sm text-muted-foreground">Signed in as</p>
               <p className="text-sm font-medium truncate">{user?.email}</p>
+              <span className="inline-flex items-center px-2 py-0.5 mt-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
+                Admin
+              </span>
             </div>
             <Button
               variant="ghost"
