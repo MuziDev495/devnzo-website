@@ -101,19 +101,64 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (docSnap.exists()) {
         const data = docSnap.data();
         
+        // Start with navigation items from CMS
+        let navItems: NavItem[] = [];
         if (data.navigation) {
-          const navItems = data.navigation.main?.filter((item: NavItem) => item.visible !== false) || [];
-          setNavigation({
-            main: navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0)),
-            ctaText: data.navigation.ctaText || defaultNavigation.ctaText,
-            ctaLink: data.navigation.ctaLink || defaultNavigation.ctaLink
-          });
+          navItems = data.navigation.main?.filter((item: NavItem) => item.visible !== false) || [];
+        }
+        
+        // Merge in pages that have showInHeader: true
+        if (data.pages) {
+          const pageEntries = Object.entries(data.pages) as [string, any][];
+          const headerPages = pageEntries
+            .filter(([_, page]) => page.showInHeader && page.isActive)
+            .map(([_, page]) => ({
+              title: page.title || page.path?.replace('/', ''),
+              path: page.path,
+              order: page.headerOrder ?? 99,
+              visible: true
+            }));
+          navItems = [...navItems, ...headerPages];
+        }
+        
+        setNavigation({
+          main: navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0)),
+          ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
+          ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
+        });
+        
+        // Start with footer items from CMS
+        let companyLinks: NavItem[] = data.footer?.company || defaultFooter.company;
+        let resourceLinks: NavItem[] = data.footer?.resources || defaultFooter.resources;
+        
+        // Merge in pages that have footer flags
+        if (data.pages) {
+          const pageEntries = Object.entries(data.pages) as [string, any][];
+          
+          const footerCompanyPages = pageEntries
+            .filter(([_, page]) => page.showInFooterCompany && page.isActive)
+            .map(([_, page]) => ({
+              title: page.title || page.path?.replace('/', ''),
+              path: page.path,
+              order: page.footerOrder ?? 99
+            }));
+          
+          const footerResourcePages = pageEntries
+            .filter(([_, page]) => page.showInFooterResources && page.isActive)
+            .map(([_, page]) => ({
+              title: page.title || page.path?.replace('/', ''),
+              path: page.path,
+              order: page.footerOrder ?? 99
+            }));
+          
+          companyLinks = [...companyLinks, ...footerCompanyPages];
+          resourceLinks = [...resourceLinks, ...footerResourcePages];
         }
         
         if (data.footer) {
           setFooter({
-            company: data.footer.company || defaultFooter.company,
-            resources: data.footer.resources || defaultFooter.resources,
+            company: companyLinks,
+            resources: resourceLinks,
             social: data.footer.social?.filter((item: SocialLink) => item.visible !== false) || defaultFooter.social,
             description: data.footer.description || defaultFooter.description,
             copyright: data.footer.copyright || defaultFooter.copyright

@@ -62,6 +62,12 @@ interface PageData {
   featuredImage?: string;
   content?: string;
   excerpt?: string;
+  // Display location settings
+  showInHeader?: boolean;
+  showInFooterCompany?: boolean;
+  showInFooterResources?: boolean;
+  headerOrder?: number;
+  footerOrder?: number;
 }
 
 // Define available sections for each page
@@ -593,6 +599,63 @@ const PageEditor: React.FC = () => {
                     <div className="space-y-2">
                       <Label>URL Path</Label>
                       <code className="text-sm bg-muted px-2 py-1 rounded block">{pageData.path}</code>
+                    </div>
+                    
+                    <div className="border-t pt-4 mt-4">
+                      <Label className="text-base font-semibold">Display Locations</Label>
+                      <p className="text-sm text-muted-foreground mb-4">Choose where this page appears in navigation</p>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Header Navigation</Label>
+                            <p className="text-xs text-muted-foreground">Show in main menu</p>
+                          </div>
+                          <Switch
+                            checked={pageData.showInHeader || false}
+                            onCheckedChange={(checked) => setPageData(prev => ({ ...prev, showInHeader: checked }))}
+                          />
+                        </div>
+                        
+                        {pageData.showInHeader && (
+                          <div className="ml-4 space-y-2">
+                            <Label className="text-xs">Menu Order</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={pageData.headerOrder ?? 99}
+                              onChange={(e) => setPageData(prev => ({ ...prev, headerOrder: parseInt(e.target.value) || 0 }))}
+                              className="h-8 w-20"
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Footer - Company</Label>
+                            <p className="text-xs text-muted-foreground">Show in Company links</p>
+                          </div>
+                          <Switch
+                            checked={pageData.showInFooterCompany || false}
+                            onCheckedChange={(checked) => setPageData(prev => ({ ...prev, showInFooterCompany: checked }))}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Footer - Resources</Label>
+                            <p className="text-xs text-muted-foreground">Show in Resources links</p>
+                          </div>
+                          <Switch
+                            checked={pageData.showInFooterResources || false}
+                            onCheckedChange={(checked) => setPageData(prev => ({ ...prev, showInFooterResources: checked }))}
+                          />
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground mt-4 italic">
+                        Tip: Unchecking all options hides the page from menus (still accessible via URL)
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

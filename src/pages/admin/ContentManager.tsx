@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Save, Plus, Trash2, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // ============== Type Definitions ==============
@@ -81,6 +81,7 @@ interface ResourceCard {
 interface NavItem {
   title: string;
   path: string;
+  order?: number;
 }
 
 interface FooterSection {
@@ -938,35 +939,142 @@ const ContentManager: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Main Navigation</CardTitle>
-              <CardDescription>Header navigation links</CardDescription>
+              <CardDescription>Header navigation links (drag to reorder or use arrows)</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {content.navigation.main.map((item, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className="flex-1 grid grid-cols-2 gap-4">
-                    <Input
-                      value={item.title}
-                      onChange={(e) => updateArrayItem('navigation', 'main', index, 'title', e.target.value)}
-                      placeholder="Link text"
-                    />
-                    <Input
-                      value={item.path}
-                      onChange={(e) => updateArrayItem('navigation', 'main', index, 'path', e.target.value)}
-                      placeholder="Path e.g. /about"
-                    />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeArrayItem('navigation', 'main', index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+            <CardContent className="space-y-2">
+              {content.navigation.main
+                .map((item, index) => ({ ...item, originalIndex: index }))
+                .sort((a, b) => (a.order ?? a.originalIndex) - (b.order ?? b.originalIndex))
+                .map((item, sortedIndex) => {
+                  const originalIndex = item.originalIndex;
+                  return (
+                    <div 
+                      key={originalIndex} 
+                      className="flex items-center gap-2 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', String(originalIndex));
+                        e.currentTarget.classList.add('opacity-50');
+                      }}
+                      onDragEnd={(e) => {
+                        e.currentTarget.classList.remove('opacity-50');
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-primary');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-primary');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-primary');
+                        const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                        if (fromIndex !== originalIndex) {
+                          const newItems = [...content.navigation.main];
+                          const [movedItem] = newItems.splice(fromIndex, 1);
+                          // Find where to insert based on sorted position
+                          const targetSortedIndex = content.navigation.main
+                            .map((it, idx) => ({ ...it, originalIndex: idx }))
+                            .sort((a, b) => (a.order ?? a.originalIndex) - (b.order ?? b.originalIndex))
+                            .findIndex(it => it.originalIndex === originalIndex);
+                          newItems.splice(targetSortedIndex > sortedIndex ? originalIndex : originalIndex, 0, movedItem);
+                          // Update order values
+                          const reorderedItems = newItems.map((it, idx) => ({ ...it, order: idx }));
+                          setContent(prev => ({
+                            ...prev,
+                            navigation: { ...prev.navigation, main: reorderedItems }
+                          }));
+                        }
+                      }}
+                    >
+                      <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab flex-shrink-0" />
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <Input
+                          value={item.title}
+                          onChange={(e) => updateArrayItem('navigation', 'main', originalIndex, 'title', e.target.value)}
+                          placeholder="Link text"
+                        />
+                        <Input
+                          value={item.path}
+                          onChange={(e) => updateArrayItem('navigation', 'main', originalIndex, 'path', e.target.value)}
+                          placeholder="Path e.g. /about"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={sortedIndex === 0}
+                          onClick={() => {
+                            const newItems = [...content.navigation.main].map((it, idx) => ({
+                              ...it,
+                              order: it.order ?? idx
+                            }));
+                            // Find the item before this one in sorted order
+                            const sortedItems = newItems
+                              .map((it, idx) => ({ ...it, origIdx: idx }))
+                              .sort((a, b) => a.order - b.order);
+                            const currentPos = sortedItems.findIndex(it => it.origIdx === originalIndex);
+                            if (currentPos > 0) {
+                              const prevItem = sortedItems[currentPos - 1];
+                              const currentItem = sortedItems[currentPos];
+                              newItems[prevItem.origIdx].order = currentItem.order;
+                              newItems[originalIndex].order = prevItem.order;
+                              setContent(prev => ({
+                                ...prev,
+                                navigation: { ...prev.navigation, main: newItems }
+                              }));
+                            }
+                          }}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          disabled={sortedIndex === content.navigation.main.length - 1}
+                          onClick={() => {
+                            const newItems = [...content.navigation.main].map((it, idx) => ({
+                              ...it,
+                              order: it.order ?? idx
+                            }));
+                            // Find the item after this one in sorted order
+                            const sortedItems = newItems
+                              .map((it, idx) => ({ ...it, origIdx: idx }))
+                              .sort((a, b) => a.order - b.order);
+                            const currentPos = sortedItems.findIndex(it => it.origIdx === originalIndex);
+                            if (currentPos < sortedItems.length - 1) {
+                              const nextItem = sortedItems[currentPos + 1];
+                              const currentItem = sortedItems[currentPos];
+                              newItems[nextItem.origIdx].order = currentItem.order;
+                              newItems[originalIndex].order = nextItem.order;
+                              setContent(prev => ({
+                                ...prev,
+                                navigation: { ...prev.navigation, main: newItems }
+                              }));
+                            }
+                          }}
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => removeArrayItem('navigation', 'main', originalIndex)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
               <Button
                 variant="outline"
-                onClick={() => addArrayItem('navigation', 'main', { title: '', path: '' })}
+                onClick={() => addArrayItem('navigation', 'main', { title: '', path: '', order: content.navigation.main.length })}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Navigation Item
