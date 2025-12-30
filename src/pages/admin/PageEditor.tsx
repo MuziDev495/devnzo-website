@@ -1,12 +1,18 @@
 /**
  * Page Editor Admin Component
- * Edit individual page content and section visibility
+ * Edit individual page content, sections, and SEO settings
+ * Supports both core pages (section toggles) and custom pages (full content editing)
  */
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import TiptapLink from '@tiptap/extension-link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +20,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Save, Eye, Plus, Trash2, GripVertical } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Save, 
+  Eye, 
+  GripVertical,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Quote,
+  Heading2,
+  Undo,
+  Redo,
+  ImageIcon,
+  LinkIcon,
+  Upload
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PageSection {
@@ -25,12 +47,21 @@ interface PageSection {
 
 interface PageData {
   isActive: boolean;
+  isCustom?: boolean;
+  template?: string;
+  title?: string;
+  path?: string;
+  description?: string;
   lastUpdated?: Date;
   seo?: {
     title: string;
     description: string;
   };
   sections: Record<string, PageSection>;
+  // Content fields for custom pages
+  featuredImage?: string;
+  content?: string;
+  excerpt?: string;
 }
 
 // Define available sections for each page
@@ -88,25 +119,60 @@ const pageInfo: Record<string, { title: string; description: string }> = {
 
 const PageEditor: React.FC = () => {
   const { pageId } = useParams<{ pageId: string }>();
+  const [searchParams] = useSearchParams();
+  const isNewPage = searchParams.get('new') === 'true';
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [pageData, setPageData] = useState<PageData>({
     isActive: true,
     seo: { title: '', description: '' },
-    sections: {}
+    sections: {},
+    featuredImage: '',
+    content: '',
+    excerpt: ''
   });
 
-  const currentPageInfo = pageInfo[pageId || ''] || { title: 'Page', description: '' };
-  const availableSections = pageSections[pageId || ''] || [];
+  const isCorePage = pageInfo[pageId || ''] !== undefined;
+  const currentPageInfo = isCorePage 
+    ? pageInfo[pageId || ''] 
+    : { title: pageData.title || 'Custom Page', description: pageData.description || '' };
+  const availableSections = isCorePage 
+    ? (pageSections[pageId || ''] || [])
+    : Object.entries(pageData.sections || {}).map(([key, section]) => ({
+        key,
+        label: section.title || key,
+        description: `Custom section`
+      }));
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Image,
+      TiptapLink.configure({
+        openOnClick: false,
+      }),
+    ],
+    content: pageData.content || '',
+    onUpdate: ({ editor }) => {
+      setPageData(prev => ({ ...prev, content: editor.getHTML() }));
+    },
+  });
 
   useEffect(() => {
     if (pageId) {
       fetchPageData();
     }
   }, [pageId]);
+
+  useEffect(() => {
+    if (editor && pageData.content && editor.getHTML() !== pageData.content) {
+      editor.commands.setContent(pageData.content);
+    }
+  }, [pageData.content, editor]);
 
   const fetchPageData = async () => {
     try {
@@ -117,29 +183,56 @@ const PageEditor: React.FC = () => {
         const data = docSnap.data();
         const existingPageData = data.pages?.[pageId!];
         
-        // Initialize sections with defaults
-        const defaultSections: Record<string, PageSection> = {};
-        availableSections.forEach(section => {
-          defaultSections[section.key] = {
-            visible: true,
-            title: section.label,
-            content: {}
-          };
-        });
-        
-        if (existingPageData) {
+        if (isCorePage) {
+          // Initialize sections with defaults for core pages
+          const defaultSections: Record<string, PageSection> = {};
+          (pageSections[pageId!] || []).forEach(section => {
+            defaultSections[section.key] = {
+              visible: true,
+              title: section.label,
+              content: {}
+            };
+          });
+          
+          if (existingPageData) {
+            setPageData({
+              isActive: existingPageData.isActive !== false,
+              lastUpdated: existingPageData.lastUpdated?.toDate?.(),
+              seo: existingPageData.seo || { title: '', description: '' },
+              sections: { ...defaultSections, ...existingPageData.sections }
+            });
+          } else {
+            setPageData({
+              isActive: true,
+              seo: { title: '', description: '' },
+              sections: defaultSections
+            });
+          }
+        } else if (existingPageData) {
+          // Custom page
           setPageData({
             isActive: existingPageData.isActive !== false,
+            isCustom: existingPageData.isCustom,
+            template: existingPageData.template,
+            title: existingPageData.title,
+            path: existingPageData.path,
+            description: existingPageData.description,
             lastUpdated: existingPageData.lastUpdated?.toDate?.(),
             seo: existingPageData.seo || { title: '', description: '' },
-            sections: { ...defaultSections, ...existingPageData.sections }
+            sections: existingPageData.sections || {},
+            featuredImage: existingPageData.featuredImage || '',
+            content: existingPageData.content || '',
+            excerpt: existingPageData.excerpt || ''
           });
         } else {
-          setPageData({
-            isActive: true,
-            seo: { title: '', description: '' },
-            sections: defaultSections
+          // Page not found
+          toast({
+            title: "Error",
+            description: "Page not found",
+            variant: "destructive"
           });
+          navigate('/admin/pages');
+          return;
         }
       }
     } catch (error) {
@@ -166,6 +259,7 @@ const PageEditor: React.FC = () => {
       const updatedPages = {
         ...existingData.pages,
         [pageId]: {
+          ...existingData.pages?.[pageId],
           ...pageData,
           lastUpdated: new Date()
         }
@@ -212,22 +306,51 @@ const PageEditor: React.FC = () => {
     }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploading(true);
+    try {
+      const storageRef = ref(storage, `page-images/${Date.now()}-${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      setPageData(prev => ({ ...prev, featuredImage: downloadURL }));
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully"
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive"
+      });
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const addImageToEditor = () => {
+    const url = prompt('Enter image URL:');
+    if (url && editor) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const addLinkToEditor = () => {
+    const url = prompt('Enter URL:');
+    if (url && editor) {
+      editor.chain().focus().setLink({ href: url }).run();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!pageId || !pageInfo[pageId]) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold mb-2">Page Not Found</h2>
-        <p className="text-muted-foreground mb-4">The page you're looking for doesn't exist.</p>
-        <Button asChild>
-          <Link to="/admin/pages">Back to Pages</Link>
-        </Button>
       </div>
     );
   }
@@ -252,7 +375,7 @@ const PageEditor: React.FC = () => {
             variant="outline"
             asChild
           >
-            <a href={`/${pageId === 'homepage' ? '' : pageId}`} target="_blank" rel="noopener noreferrer">
+            <a href={pageData.path || `/${pageId === 'homepage' ? '' : pageId}`} target="_blank" rel="noopener noreferrer">
               <Eye className="h-4 w-4 mr-2" />
               Preview
             </a>
@@ -268,11 +391,215 @@ const PageEditor: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="sections" className="space-y-6">
+      {isNewPage && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="pt-6">
+            <p className="text-sm">
+              <strong>Welcome to your new page!</strong> Add your content below using the rich text editor, 
+              upload a featured image, and configure which sections should be visible.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <Tabs defaultValue={pageData.isCustom ? "content" : "sections"} className="space-y-6">
         <TabsList>
+          {pageData.isCustom && <TabsTrigger value="content">Content</TabsTrigger>}
           <TabsTrigger value="sections">Sections</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
         </TabsList>
+
+        {/* Content Tab (for custom pages) */}
+        {pageData.isCustom && (
+          <TabsContent value="content" className="space-y-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Page Content</CardTitle>
+                    <CardDescription>
+                      Write your page content using the rich text editor
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Content</Label>
+                      {/* Editor Toolbar */}
+                      <div className="flex flex-wrap gap-1 p-2 border border-border rounded-t-lg bg-muted/50">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleBold().run()}
+                          className={editor?.isActive('bold') ? 'bg-muted' : ''}
+                        >
+                          <Bold className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleItalic().run()}
+                          className={editor?.isActive('italic') ? 'bg-muted' : ''}
+                        >
+                          <Italic className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                          className={editor?.isActive('heading') ? 'bg-muted' : ''}
+                        >
+                          <Heading2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                          className={editor?.isActive('bulletList') ? 'bg-muted' : ''}
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                          className={editor?.isActive('orderedList') ? 'bg-muted' : ''}
+                        >
+                          <ListOrdered className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                          className={editor?.isActive('blockquote') ? 'bg-muted' : ''}
+                        >
+                          <Quote className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={addImageToEditor}
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={addLinkToEditor}
+                        >
+                          <LinkIcon className="h-4 w-4" />
+                        </Button>
+                        <div className="flex-1" />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().undo().run()}
+                        >
+                          <Undo className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => editor?.chain().focus().redo().run()}
+                        >
+                          <Redo className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {/* Editor Content */}
+                      <div className="border border-t-0 border-border rounded-b-lg p-4 min-h-[300px] prose prose-sm max-w-none dark:prose-invert">
+                        <EditorContent editor={editor} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="excerpt">Excerpt / Summary</Label>
+                      <Textarea
+                        id="excerpt"
+                        value={pageData.excerpt || ''}
+                        onChange={(e) => setPageData(prev => ({ ...prev, excerpt: e.target.value }))}
+                        placeholder="Brief summary of this page..."
+                        rows={3}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Used for previews and search results
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Featured Image */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Featured Image</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {pageData.featuredImage && (
+                      <img 
+                        src={pageData.featuredImage} 
+                        alt="Featured" 
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                    )}
+                    <div>
+                      <Label htmlFor="image-upload" className="cursor-pointer">
+                        <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
+                          <Upload className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {imageUploading ? 'Uploading...' : 'Upload image'}
+                          </span>
+                        </div>
+                      </Label>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={imageUploading}
+                        className="hidden"
+                      />
+                    </div>
+                    <div className="text-center text-sm text-muted-foreground">or</div>
+                    <Input
+                      placeholder="Image URL"
+                      value={pageData.featuredImage || ''}
+                      onChange={(e) => setPageData(prev => ({ ...prev, featuredImage: e.target.value }))}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Page Info */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Page Info</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Template</Label>
+                      <p className="text-sm text-muted-foreground capitalize">{pageData.template || 'Custom'}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>URL Path</Label>
+                      <code className="text-sm bg-muted px-2 py-1 rounded block">{pageData.path}</code>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        )}
 
         {/* Sections Tab */}
         <TabsContent value="sections" className="space-y-6">
@@ -284,44 +611,52 @@ const PageEditor: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {availableSections.map((section) => {
-                const sectionData = pageData.sections[section.key];
-                return (
-                  <div 
-                    key={section.key}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <GripVertical className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{section.label}</p>
-                        <p className="text-sm text-muted-foreground">{section.description}</p>
+              {availableSections.length > 0 ? (
+                availableSections.map((section) => {
+                  const sectionData = pageData.sections[section.key];
+                  return (
+                    <div 
+                      key={section.key}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{section.label}</p>
+                          <p className="text-sm text-muted-foreground">{section.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">
+                          {sectionData?.visible !== false ? 'Visible' : 'Hidden'}
+                        </span>
+                        <Switch
+                          checked={sectionData?.visible !== false}
+                          onCheckedChange={(checked) => toggleSection(section.key, checked)}
+                        />
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-muted-foreground">
-                        {sectionData?.visible !== false ? 'Visible' : 'Hidden'}
-                      </span>
-                      <Switch
-                        checked={sectionData?.visible !== false}
-                        onCheckedChange={(checked) => toggleSection(section.key, checked)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <p className="text-muted-foreground text-center py-4">
+                  No sections configured for this page.
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> To edit the actual content of each section (text, images, etc.), 
-                go to <Link to="/admin/content" className="text-primary hover:underline">Content Manager</Link> and 
-                select the corresponding page tab.
-              </p>
-            </CardContent>
-          </Card>
+          {isCorePage && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Note:</strong> To edit the actual content of each section (text, images, etc.), 
+                  go to <Link to="/admin/content" className="text-primary hover:underline">Content Manager</Link> and 
+                  select the corresponding page tab.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* SEO Tab */}
@@ -342,7 +677,7 @@ const PageEditor: React.FC = () => {
                   placeholder={`${currentPageInfo.title} | Devnzo`}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Recommended: 50-60 characters
+                  Recommended: 50-60 characters ({(pageData.seo?.title || '').length}/60)
                 </p>
               </div>
               <div className="space-y-2">
@@ -354,7 +689,7 @@ const PageEditor: React.FC = () => {
                   rows={3}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Recommended: 150-160 characters
+                  Recommended: 150-160 characters ({(pageData.seo?.description || '').length}/160)
                 </p>
               </div>
             </CardContent>
