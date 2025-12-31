@@ -116,10 +116,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Build menu tree from flat items
   const buildMenuTree = (items: MenuItem[]): MenuItem[] => {
     const sortedItems = [...items].sort((a, b) => a.order - b.order);
-    // Top-level items have no parentId, empty string parentId, or '__none__' as parentId
-    const topLevelItems = sortedItems.filter(item => 
-      (!item.parentId || item.parentId === '' || item.parentId === '__none__') && item.visible !== false
-    );
+    const topLevelItems = sortedItems.filter(item => !item.parentId && item.visible !== false);
     
     return topLevelItems.map(parent => ({
       ...parent,
