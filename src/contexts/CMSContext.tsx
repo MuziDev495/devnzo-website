@@ -13,6 +13,7 @@ export interface MenuItem {
   path: string;
   order: number;
   parentId?: string;
+  category?: string;
   openInNewTab?: boolean;
   visible: boolean;
   children?: MenuItem[];
@@ -63,7 +64,18 @@ interface CMSContextType {
 const defaultNavigation: NavigationData = {
   main: [
     { title: 'Products', path: '/products', visible: true },
-    { title: 'Resources', path: '/resources', visible: true },
+    { 
+      title: 'Resources', 
+      path: '/resources', 
+      visible: true,
+      children: [
+        { id: 'res_1', title: 'Knowledge', path: '/resources', order: 0, category: 'Shopify', visible: true },
+        { id: 'res_2', title: 'Shopify Apps', path: '/products', order: 1, category: 'Shopify', visible: true },
+        { id: 'res_3', title: 'All Blog', path: '/blog', order: 2, category: 'eCommerce', visible: true },
+        { id: 'res_4', title: 'Free Tools', path: '/resources', order: 3, category: 'eCommerce', visible: true },
+        { id: 'res_5', title: 'Shopify Free Trial', path: 'https://www.shopify.com/free-trial', order: 4, category: 'eCommerce', openInNewTab: true, visible: true },
+      ]
+    },
     { title: 'Partners', path: '/partners', visible: true },
     { title: 'About', path: '/about', visible: true },
     { title: 'Contact', path: '/contact', visible: true },

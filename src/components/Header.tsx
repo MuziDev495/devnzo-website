@@ -26,10 +26,25 @@ const Header = () => {
   const ctaText = navigation?.ctaText || 'Start Free Trial';
   const ctaLink = navigation?.ctaLink || 'https://www.shopify.com/';
 
+  // Group children by category for mega menu
+  const groupByCategory = (children: MenuItem[]) => {
+    const groups: { [key: string]: MenuItem[] } = {};
+    children.forEach(child => {
+      const cat = child.category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(child);
+    });
+    return groups;
+  };
+
   const renderNavItem = (item: typeof navItems[0]) => {
     const hasChildren = item.children && item.children.length > 0;
 
     if (hasChildren) {
+      const categoryGroups = groupByCategory(item.children!);
+      const categories = Object.keys(categoryGroups);
+      const isMegaMenu = categories.length > 1 || categories.some(c => c !== 'Other');
+
       return (
         <div
           key={item.path}
@@ -49,19 +64,47 @@ const Header = () => {
           </button>
 
           {openDropdown === item.path && (
-            <div className="absolute top-full left-0 mt-1 min-w-48 bg-card rounded-lg shadow-lg border border-border py-2 z-50">
-              {item.children!.map((child: MenuItem) => (
-                <Link
-                  key={child.id || child.path}
-                  to={child.path}
-                  target={child.openInNewTab ? '_blank' : undefined}
-                  rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
-                  className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
-                  onClick={() => setOpenDropdown(null)}
-                >
-                  {child.title}
-                </Link>
-              ))}
+            <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-card rounded-lg shadow-lg border border-border py-4 z-50 ${
+              isMegaMenu ? 'min-w-[400px]' : 'min-w-48'
+            }`}>
+              {isMegaMenu ? (
+                <div className="grid grid-cols-2 gap-6 px-6">
+                  {categories.map(category => (
+                    <div key={category}>
+                      <h4 className="font-semibold text-foreground mb-3">{category}</h4>
+                      <div className="space-y-1">
+                        {categoryGroups[category].map((child: MenuItem) => (
+                          <Link
+                            key={child.id || child.path}
+                            to={child.path}
+                            target={child.openInNewTab ? '_blank' : undefined}
+                            rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                            className="block py-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                            onClick={() => setOpenDropdown(null)}
+                          >
+                            {child.title}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-2">
+                  {item.children!.map((child: MenuItem) => (
+                    <Link
+                      key={child.id || child.path}
+                      to={child.path}
+                      target={child.openInNewTab ? '_blank' : undefined}
+                      rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                      className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors"
+                      onClick={() => setOpenDropdown(null)}
+                    >
+                      {child.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

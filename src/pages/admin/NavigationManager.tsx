@@ -34,6 +34,7 @@ export interface MenuItem {
   path: string;
   order: number;
   parentId?: string;
+  category?: string;
   openInNewTab?: boolean;
   visible: boolean;
   children?: MenuItem[];
@@ -55,10 +56,13 @@ const defaultMenus: MenusData = {
     items: [
       { id: 'header_1', title: 'Products', path: '/products', order: 0, visible: true },
       { id: 'header_2', title: 'Resources', path: '/resources', order: 1, visible: true },
-      { id: 'header_2a', title: 'Blog', path: '/blog', order: 0, parentId: 'header_2', visible: true },
-      { id: 'header_2b', title: 'Help Center', path: '/help-center', order: 1, parentId: 'header_2', visible: true },
-      { id: 'header_2c', title: 'Documentation', path: '/documentation', order: 2, parentId: 'header_2', visible: true },
-      { id: 'header_2d', title: 'FAQs', path: '/faq', order: 3, parentId: 'header_2', visible: true },
+      // Shopify category
+      { id: 'header_2a', title: 'Knowledge', path: '/resources', order: 0, parentId: 'header_2', category: 'Shopify', visible: true },
+      { id: 'header_2b', title: 'Shopify Apps', path: '/products', order: 1, parentId: 'header_2', category: 'Shopify', visible: true },
+      // eCommerce category
+      { id: 'header_2c', title: 'All Blog', path: '/blog', order: 2, parentId: 'header_2', category: 'eCommerce', visible: true },
+      { id: 'header_2d', title: 'Free Tools', path: '/resources', order: 3, parentId: 'header_2', category: 'eCommerce', visible: true },
+      { id: 'header_2e', title: 'Shopify Free Trial', path: 'https://www.shopify.com/free-trial', order: 4, parentId: 'header_2', category: 'eCommerce', openInNewTab: true, visible: true },
       { id: 'header_3', title: 'Partners', path: '/partners', order: 2, visible: true },
       { id: 'header_4', title: 'About', path: '/about', order: 3, visible: true },
       { id: 'header_5', title: 'Contact', path: '/contact', order: 4, visible: true },
@@ -684,14 +688,14 @@ const NavigationManager: React.FC = () => {
                 <div className="space-y-2">
                   <Label>Make sub-item of</Label>
                   <Select
-                    value={editingItem.parentId || ''}
-                    onValueChange={(value) => setEditingItem({ ...editingItem, parentId: value || undefined })}
+                    value={editingItem.parentId || '__none__'}
+                    onValueChange={(value) => setEditingItem({ ...editingItem, parentId: value === '__none__' ? undefined : value })}
                   >
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="None (top level)" />
                     </SelectTrigger>
-                    <SelectContent className="bg-card z-50">
-                      <SelectItem value="">None (top level)</SelectItem>
+                <SelectContent className="bg-card z-50">
+                      <SelectItem value="__none__">None (top level)</SelectItem>
                       {topLevelItems
                         .filter(item => item.id !== editingItem.id)
                         .map((item) => (
