@@ -148,8 +148,8 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data.menus) {
           setMenus(data.menus);
           
-          // Build navigation from header menu
-          if (data.menus.header?.items) {
+          // Build navigation from header menu with fallback
+          if (data.menus.header?.items && data.menus.header.items.length > 0) {
             const menuTree = buildMenuTree(data.menus.header.items);
             const navItems = menuTree.map(item => ({
               title: item.title,
@@ -159,8 +159,16 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               children: item.children
             }));
             
+            // Only use Firestore items if we got valid results, otherwise keep defaults
             setNavigation({
-              main: navItems,
+              main: navItems.length > 0 ? navItems : defaultNavigation.main,
+              ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
+              ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
+            });
+          } else {
+            // No menu items in Firestore, keep default navigation
+            setNavigation({
+              main: defaultNavigation.main,
               ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
               ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
             });
@@ -204,8 +212,9 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             navItems = [...navItems, ...headerPages];
           }
           
+          const sortedNavItems = navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0));
           setNavigation({
-            main: navItems.sort((a: NavItem, b: NavItem) => (a.order || 0) - (b.order || 0)),
+            main: sortedNavItems.length > 0 ? sortedNavItems : defaultNavigation.main,
             ctaText: data.navigation?.ctaText || defaultNavigation.ctaText,
             ctaLink: data.navigation?.ctaLink || defaultNavigation.ctaLink
           });
