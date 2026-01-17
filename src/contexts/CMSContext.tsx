@@ -196,9 +196,27 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               children: item.children
             }));
             
-            // Add Documentation dropdown with dynamic children from documentation collection
-            const hasDocsNav = navItems.some(item => item.path === '/docs');
-            if (!hasDocsNav && docs.length > 0) {
+            // Add Documentation dropdown children from documentation collection
+            // Check for existing Documentation nav item (could be /docs or /documentation)
+            const docsNavIndex = navItems.findIndex(item => 
+              item.path === '/docs' || item.path === '/documentation'
+            );
+            
+            if (docsNavIndex !== -1 && docs.length > 0) {
+              // Update existing Documentation item with dynamic children
+              navItems[docsNavIndex] = {
+                ...navItems[docsNavIndex],
+                path: '/docs', // Normalize to /docs
+                children: docs.map(doc => ({
+                  id: doc.id,
+                  title: doc.title,
+                  path: `/docs/${doc.slug}`,
+                  order: doc.order,
+                  visible: true
+                }))
+              };
+            } else if (docs.length > 0) {
+              // No existing docs nav, add new one
               navItems.push({
                 title: 'Documentation',
                 path: '/docs',
