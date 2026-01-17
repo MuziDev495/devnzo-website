@@ -28,6 +28,13 @@ import SEOSettings from "./pages/admin/SEOSettings";
 import PageList from "./pages/admin/PageList";
 import PageEditor from "./pages/admin/PageEditor";
 import NavigationManager from "./pages/admin/NavigationManager";
+import DocumentationManager from "./pages/admin/DocumentationManager";
+import DocumentationEditor from "./pages/admin/DocumentationEditor";
+
+// Documentation imports
+import DocumentationLayout from "./pages/docs/DocumentationLayout";
+import DocArticlePage from "./pages/docs/DocArticlePage";
+import DocLandingPage from "./pages/docs/DocLandingPage";
 
 // Blog imports
 import BlogPostPage from "./pages/blog/BlogPostPage";
@@ -100,6 +107,12 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Route>
 
+                {/* GitBook-style Documentation */}
+                <Route path="/docs" element={<DocumentationLayout />}>
+                  <Route index element={<DocLandingPage />} />
+                  <Route path=":slug" element={<DocArticlePage />} />
+                </Route>
+
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route
@@ -117,6 +130,9 @@ const App = () => (
                   <Route path="blog/new" element={<BlogEditor />} />
                   <Route path="blog/edit/:id" element={<BlogEditor />} />
                   <Route path="navigation" element={<NavigationManager />} />
+                  <Route path="documentation" element={<DocumentationManager />} />
+                  <Route path="documentation/new" element={<DocumentationEditor />} />
+                  <Route path="documentation/edit/:id" element={<DocumentationEditor />} />
                   <Route path="content" element={<ContentManager />} />
                   <Route path="seo" element={<SEOSettings />} />
                 </Route>

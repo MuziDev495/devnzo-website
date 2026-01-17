@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export interface MenuItem {
@@ -53,10 +53,19 @@ interface NavigationData {
   ctaLink: string;
 }
 
+interface DocArticle {
+  id: string;
+  title: string;
+  slug: string;
+  order: number;
+  visible: boolean;
+}
+
 interface CMSContextType {
   navigation: NavigationData | null;
   footer: FooterData | null;
   menus: { [key: string]: MenuData } | null;
+  docArticles: DocArticle[];
   loading: boolean;
   refreshCMS: () => Promise<void>;
 }
@@ -113,6 +122,7 @@ const CMSContext = createContext<CMSContextType>({
   navigation: defaultNavigation,
   footer: defaultFooter,
   menus: null,
+  docArticles: [],
   loading: true,
   refreshCMS: async () => {}
 });
@@ -123,6 +133,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [navigation, setNavigation] = useState<NavigationData | null>(defaultNavigation);
   const [footer, setFooter] = useState<FooterData | null>(defaultFooter);
   const [menus, setMenus] = useState<{ [key: string]: MenuData } | null>(null);
+  const [docArticles, setDocArticles] = useState<DocArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Build menu tree from flat items
@@ -134,6 +145,29 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...parent,
       children: sortedItems.filter(child => child.parentId === parent.id && child.visible !== false)
     }));
+  };
+
+  const fetchDocArticles = async () => {
+    try {
+      const q = query(
+        collection(db, 'documentation'),
+        where('visible', '==', true),
+        orderBy('order')
+      );
+      const snapshot = await getDocs(q);
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        title: doc.data().title,
+        slug: doc.data().slug,
+        order: doc.data().order,
+        visible: doc.data().visible
+      })) as DocArticle[];
+      setDocArticles(docs);
+      return docs;
+    } catch (error) {
+      console.error('Error fetching documentation articles:', error);
+      return [];
+    }
   };
 
   const fetchCMSData = async () => {
@@ -148,16 +182,37 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data.menus) {
           setMenus(data.menus);
           
+          // Fetch documentation articles for nav dropdown
+          const docs = await fetchDocArticles();
+          
           // Build navigation from header menu with fallback
           if (data.menus.header?.items && data.menus.header.items.length > 0) {
             const menuTree = buildMenuTree(data.menus.header.items);
-            const navItems = menuTree.map(item => ({
+            const navItems: NavItem[] = menuTree.map(item => ({
               title: item.title,
               path: item.path,
               visible: item.visible,
               order: item.order,
               children: item.children
             }));
+            
+            // Add Documentation dropdown with dynamic children from documentation collection
+            const hasDocsNav = navItems.some(item => item.path === '/docs');
+            if (!hasDocsNav && docs.length > 0) {
+              navItems.push({
+                title: 'Documentation',
+                path: '/docs',
+                visible: true,
+                order: 99,
+                children: docs.map(doc => ({
+                  id: doc.id,
+                  title: doc.title,
+                  path: `/docs/${doc.slug}`,
+                  order: doc.order,
+                  visible: true
+                }))
+              });
+            }
             
             // Only use Firestore items if we got valid results, otherwise keep defaults
             setNavigation({
@@ -268,7 +323,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   return (
-    <CMSContext.Provider value={{ navigation, footer, menus, loading, refreshCMS: fetchCMSData }}>
+    <CMSContext.Provider value={{ navigation, footer, menus, docArticles, loading, refreshCMS: fetchCMSData }}>
       {children}
     </CMSContext.Provider>
   );
