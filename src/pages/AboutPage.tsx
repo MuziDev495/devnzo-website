@@ -77,7 +77,7 @@ const AboutPage = () => {
 
   // Mission Section customization
   const missionImageUrl = pageContent?.about?.missionSection?.imageUrl || "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600";
-  const missionBadgeText = pageContent?.about?.missionSection?.badgeText || "10+";
+  const missionBadgeText = pageContent?.about?.missionSection?.badgeText || "2+";
   const missionBadgeSubtext = pageContent?.about?.missionSection?.badgeSubtext || "Years of Excellence";
 
   // Animated counter hook

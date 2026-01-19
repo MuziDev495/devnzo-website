@@ -1,0 +1,18 @@
+{
+	"geolocation": {
+		"data": {
+			"country": {
+				"code": "PK",
+				"name": "Pakistan"
+			},
+			"subdivision": {
+				"code": "PB",
+				"name": "Punjab"
+			},
+			"timezone": "Asia/Karachi",
+			"latitude": 31.558,
+			"longitude": 74.3587
+		},
+		"timestamp": 1768822439380
+	}
+}

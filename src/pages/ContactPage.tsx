@@ -37,7 +37,7 @@ const ContactPage = () => {
   const contactDescription = pageContent?.contact?.description || "Have a question or want to learn more about how Devnzo can help your business? We'd love to hear from you.";
   const contactEmail = pageContent?.contact?.email || 'contact@devnzo.com';
   const contactPhone = pageContent?.contact?.phone || '+1 (307) 225 5593';
-  const contactAddress = pageContent?.contact?.address || '34 N Franklin Ave Ste 687, Pinedale, WY, 82941';
+  const contactAddress = pageContent?.contact?.address || '34 N Franklin Ave Ste 687,82941 Pinedale, WY,USA ';
 
   const contactInfo = [
     {

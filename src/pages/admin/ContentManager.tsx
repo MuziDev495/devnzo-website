@@ -249,8 +249,8 @@ const defaultContent: PageContentData = {
     title: 'Get in Touch',
     description: 'We would love to hear from you',
     email: 'contact@devnzo.com',
-    phone: '+1 234 567 890',
-    address: '123 Business Street, City, Country',
+    phone: '+1 307 225 5593',
+    address: '34 N Franklin Ave Ste 687, 2481, 82941, Pinedale, WY, USA',
   },
   products: {
     hero: {
@@ -925,7 +925,7 @@ const ContentManager: React.FC = () => {
                   <Input
                     value={content.contact.phone}
                     onChange={(e) => updateField('contact', 'phone', e.target.value)}
-                    placeholder="+1 234 567 890"
+                    placeholder="+1 307 225 5593"
                   />
                 </div>
                 <div className="space-y-2">
