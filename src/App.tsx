@@ -12,6 +12,7 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PartnersPage from "./pages/PartnersPage";
 import ResourcesPage from "./pages/ResourcesPage";
+import FreeToolsPage from "./pages/FreeToolsPage";
 import NotFound from "./pages/NotFound";
 
 // Admin imports
@@ -49,8 +50,13 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 // Support pages
 import SupportPage from "./pages/SupportPage";
 import FAQPage from "./pages/FAQPage";
-import DocumentationPage from "./pages/DocumentationPage";
 import HelpCenterPage from "./pages/HelpCenterPage";
+
+// Tool imports
+import RoiCalculatorPage from "./components/Tools/RoiCalculatorPage";
+import BusinessLoanCalculatorPage from "./components/Tools/BusinessLoanCalculatorPage";
+import ShopifyFeeCalculatorPage from "./components/Tools/ShopifyFeeCalculatorPage";
+import ProfitMarginCalculatorPage from "./components/Tools/ProfitMarginCalculatorPage";
 
 // Analytics
 import { initGA, trackPageView, trackPageViewToFirestore } from "./lib/analytics";
@@ -60,7 +66,7 @@ const queryClient = new QueryClient();
 // Analytics tracker component
 const AnalyticsTracker = () => {
   const location = useLocation();
-  
+
   useEffect(() => {
     initGA();
   }, []);
@@ -102,8 +108,15 @@ const App = () => (
                   <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
                   <Route path="support" element={<SupportPage />} />
                   <Route path="faq" element={<FAQPage />} />
-                  <Route path="documentation" element={<DocumentationPage />} />
                   <Route path="help-center" element={<HelpCenterPage />} />
+                  <Route path="free-tools" element={<FreeToolsPage />} />
+
+                  {/* Tool Routes */}
+                  <Route path="tools/roi-calculator" element={<RoiCalculatorPage />} />
+                  <Route path="tools/loan-calculator" element={<BusinessLoanCalculatorPage />} />
+                  <Route path="tools/shopify-fee-calculator" element={<ShopifyFeeCalculatorPage />} />
+                  <Route path="tools/profit-margin-calculator" element={<ProfitMarginCalculatorPage />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Route>
 

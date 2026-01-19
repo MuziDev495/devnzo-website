@@ -1,15 +1,16 @@
 /**
  * Documentation Landing Page
- * Default page shown at /docs with overview and article links
+ * Default page shown at /docs with overview, article links, and pagination
  */
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import { Link, useSearchParams } from 'react-router-dom';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, ArrowRight, FileText } from 'lucide-react';
+import { BookOpen, ArrowRight, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import SEOHead from '@/components/SEOHead';
+import { cn } from '@/lib/utils';
 
 interface DocArticle {
   id: string;
@@ -18,11 +19,18 @@ interface DocArticle {
   content: string;
   order: number;
   visible: boolean;
+  parentId?: string | null;
 }
 
+const ARTICLES_PER_PAGE = 10;
+
 const DocLandingPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [articles, setArticles] = useState<DocArticle[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get current page from URL params (default to 1)
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   useEffect(() => {
     fetchArticles();
@@ -30,16 +38,18 @@ const DocLandingPage: React.FC = () => {
 
   const fetchArticles = async () => {
     try {
-      const q = query(
-        collection(db, 'documentation'),
-        where('visible', '==', true),
-        orderBy('order')
-      );
+      // Fetch all articles and filter/sort client-side to avoid composite index requirement
+      const q = query(collection(db, 'documentation'));
       const snapshot = await getDocs(q);
-      const docs = snapshot.docs.map(doc => ({
+      const allDocs = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as DocArticle[];
+
+      // Filter visible and sort by order
+      const docs = allDocs
+        .filter(doc => doc.visible !== false)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
       setArticles(docs);
     } catch (error) {
       console.error('Error fetching documentation:', error);
@@ -55,9 +65,65 @@ const DocLandingPage: React.FC = () => {
     return text.substring(0, maxLength).trim() + '...';
   };
 
+  // Separate top-level articles (no parent) and child articles
+  const topLevelArticles = articles.filter(a => !a.parentId);
+  const childArticles = articles.filter(a => a.parentId);
+
+  // Pagination calculations (for child/remaining articles only)
+  const totalPages = Math.ceil(childArticles.length / ARTICLES_PER_PAGE);
+  const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+  const endIndex = startIndex + ARTICLES_PER_PAGE;
+  const paginatedArticles = childArticles.slice(startIndex, endIndex);
+
+  // Page navigation handlers
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setSearchParams({ page: page.toString() });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = (): (number | string)[] => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      // Always show last page
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title="Documentation"
         description="Browse our documentation to learn how to use our products and features effectively."
       />
@@ -101,38 +167,50 @@ const DocLandingPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Quick Start - First Article */}
-            {articles.length > 0 && (
+            {/* Quick Start - All Top-Level Navigation Articles (only show on first page) */}
+            {currentPage === 1 && topLevelArticles.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
                   Quick Start
                 </h2>
-                <Link to={`/docs/${articles[0].slug}`}>
-                  <Card className="hover:border-primary/50 hover:shadow-md transition-all group">
-                    <CardContent className="flex items-center justify-between p-6">
-                      <div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {articles[0].title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {getExcerpt(articles[0].content)}
-                        </p>
-                      </div>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                    </CardContent>
-                  </Card>
-                </Link>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {topLevelArticles.map((article) => (
+                    <Link key={article.id} to={`/docs/${article.slug}`}>
+                      <Card className="h-full hover:border-primary/50 hover:shadow-md transition-all group">
+                        <CardContent className="flex items-center justify-between p-6">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {article.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              {getExcerpt(article.content)}
+                            </p>
+                          </div>
+                          <ArrowRight className="h-5 w-5 flex-shrink-0 ml-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* All Articles */}
-            {articles.length > 1 && (
+            {/* All Articles (paginated - only child articles) */}
+            {childArticles.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-                  All Articles
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {currentPage === 1 ? 'All Articles' : `Articles (Page ${currentPage})`}
+                  </h2>
+                  {totalPages > 1 && (
+                    <span className="text-sm text-muted-foreground">
+                      Showing {startIndex + 1}-{Math.min(endIndex, childArticles.length)} of {childArticles.length}
+                    </span>
+                  )}
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-2">
-                  {articles.slice(1).map((article) => (
+                  {paginatedArticles.map((article) => (
                     <Link key={article.id} to={`/docs/${article.slug}`}>
                       <Card className="h-full hover:border-primary/50 hover:shadow-md transition-all group">
                         <CardHeader className="pb-2">
@@ -150,6 +228,68 @@ const DocLandingPage: React.FC = () => {
                     </Link>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1 pt-8 border-t border-border">
+                {/* Previous Button */}
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    currentPage === 1
+                      ? "text-muted-foreground/50 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="px-3 py-2 text-muted-foreground"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page as number)}
+                        className={cn(
+                          "min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                          currentPage === page
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        )}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    currentPage === totalPages
+                      ? "text-muted-foreground/50 cursor-not-allowed"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             )}
           </>

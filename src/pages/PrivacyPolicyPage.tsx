@@ -65,7 +65,7 @@ const PrivacyPolicyPage = () => {
             </p>
             <div className="flex items-center gap-2 text-white/70 justify-center">
               <Calendar className="w-5 h-5" />
-              <span>Last updated: November 24, 2025</span>
+              <span>Last updated: January 19, 2026</span>
             </div>
           </div>
         </div>

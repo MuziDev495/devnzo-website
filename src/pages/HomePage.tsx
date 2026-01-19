@@ -7,8 +7,11 @@ import { ArrowRight, BarChart3, Users, Shield, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerReviewSection from '@/components/CustomerReviewSection';
+import { usePageContent } from '@/contexts/CMSContext';
+import { renderBootstrapIcon } from '@/utils/iconRenderer';
 
 const HomePage = () => {
+  const { pageContent, loading: cmsLoading } = usePageContent();
   const [isVisible, setIsVisible] = useState({
     stats: false,
     features: false,
@@ -18,39 +21,40 @@ const HomePage = () => {
   const featuresRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const features = [
+  // Default features (fallback if CMS data not available)
+  const defaultFeatures = [
     {
-      icon: <BarChart3 className="w-8 h-8 text-accent" />,
-      title: "Advanced Analytics",
-      description: "Deep insights into your business performance with real-time data visualization and predictive analytics.",
-      image: "https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=400"
+      icon: 'BarChartLine',
+      title: "Analytics",
+      description: "Deep insights into your business",
     },
     {
-      icon: <Users className="w-8 h-8 text-primary" />,
-      title: "Customer Management",
-      description: "Comprehensive CRM tools to manage relationships, track interactions, and boost customer satisfaction.",
-      image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=400"
+      icon: 'LightningCharge',
+      title: "Automation",
+      description: "Streamline your operations",
     },
     {
-      icon: <Shield className="w-8 h-8 text-success" />,
-      title: "Enterprise Security",
-      description: "Bank-level security protocols protecting your data with advanced encryption and compliance standards.",
-      image: "https://images.pexels.com/photos/60504/security-protection-anti-virus-software-60504.jpeg?auto=compress&cs=tinysrgb&w=400"
-    },
-    {
-      icon: <Zap className="w-8 h-8 text-warning" />,
-      title: "Automation Suite",
-      description: "Streamline workflows with intelligent automation that saves time and reduces manual errors.",
-      image: "https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&cs=tinysrgb&w=400"
+      icon: 'ChatDots',
+      title: "Support",
+      description: "24/7 expert assistance",
     }
   ];
 
-  const stats = [
-    { number: 50, label: "Active Users", suffix: "K+" },
-    { number: 99.9, label: "Uptime", suffix: "%" },
-    { number: 500, label: "Transactions", suffix: "M+" },
-    { number: 150, label: "Countries", suffix: "+" }
+  // Default stats (fallback if CMS data not available)
+  const defaultStats = [
+    { value: '2+', label: "YEARS OF EXPERIENCES" },
+    { value: '550+', label: "REVIEWS" },
+    { value: '5000+', label: "MERCHANTS WORLDWIDE" }
   ];
+
+  // Use CMS data or fall back to defaults
+  const heroTitle = pageContent?.homepage?.hero?.title || 'Transform Your Business with Devnzo';
+  const heroSubtitle = pageContent?.homepage?.hero?.subtitle || 'Empowering businesses with innovative solutions for sustainable growth and success.';
+  const heroCtaText = pageContent?.homepage?.hero?.ctaText || 'Get Started';
+  const heroCtaLink = pageContent?.homepage?.hero?.ctaLink || '/contact';
+
+  const cmsFeatures = pageContent?.homepage?.features || defaultFeatures;
+  const cmsStats = pageContent?.homepage?.stats || defaultStats;
 
   const partnerLogos = ['Microsoft', 'Google', 'Amazon', 'Apple', 'Tesla', 'Netflix'];
 
@@ -110,26 +114,17 @@ const HomePage = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Animated counter component
-  const AnimatedStat = ({ stat, index }: { stat: typeof stats[0], index: number }) => {
-    const animatedValue = useAnimatedCounter(stat.number, 2500, isVisible.stats);
-
-    const formatNumber = (num: number, suffix: string) => {
-      if (suffix === '%') return num.toFixed(1);
-      return Math.floor(num);
-    };
-
+  // Simple stat component (CMS stats are strings like '100+ Clients')
+  const StatDisplay = ({ stat, index }: { stat: { value: string; label: string }, index: number }) => {
     return (
       <div
-        className={`text-center transform transition-all duration-700 ${
-          isVisible.stats ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-        }`}
+        className={`text-center transform transition-all duration-700 ${isVisible.stats ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+          }`}
         style={{ transitionDelay: `${index * 150}ms` }}
       >
-        <div className={`text-4xl lg:text-5xl font-bold text-primary-foreground mb-2 ${
-          isVisible.stats ? 'animate-bounce-once' : ''
-        }`}>
-          {formatNumber(animatedValue, stat.suffix)}{stat.suffix}
+        <div className={`text-4xl lg:text-5xl font-bold text-primary-foreground mb-2 ${isVisible.stats ? 'animate-bounce-once' : ''
+          }`}>
+          {stat.value}
         </div>
         <div className="text-primary-foreground/70 text-sm font-medium uppercase tracking-wide">
           {stat.label}
@@ -145,13 +140,14 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiA2djZoNnYtNmgtNnptLTYgNnY2aDZ2LTZoLTZ6bTYgMHY2aDZ2LTZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] bg-center opacity-50"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-primary-foreground mb-8">
-            Transform Your Business with{' '}
-            <span className="gradient-text-hero">
-              Devnzo
-            </span>
+            {heroTitle.includes('Devnzo') ? (
+              <>{heroTitle.replace('Devnzo', '')}<span className="gradient-text-hero">Devnzo</span></>
+            ) : (
+              heroTitle
+            )}
           </h1>
           <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12 max-w-3xl mx-auto">
-            Empowering businesses with innovative solutions for sustainable growth and success.
+            {heroSubtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
@@ -210,37 +206,26 @@ const HomePage = () => {
       <section className="py-20 bg-background" ref={featuresRef}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className={`text-4xl lg:text-5xl font-bold text-foreground mb-6 transition-all duration-700 ${
-              isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}>
+            <h2 className={`text-4xl lg:text-5xl font-bold text-foreground mb-6 transition-all duration-700 ${isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+              }`}>
               Everything You Need for Business Success
             </h2>
-            <p className={`text-xl text-muted-foreground max-w-3xl mx-auto transition-all duration-700 ${
-              isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`} style={{ transitionDelay: '200ms' }}>
+            <p className={`text-xl text-muted-foreground max-w-3xl mx-auto transition-all duration-700 ${isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+              }`} style={{ transitionDelay: '200ms' }}>
               Discover the comprehensive suite of tools designed to streamline your business operations,
               boost productivity, and drive sustainable growth.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center max-w-5xl mx-auto">
+            {cmsFeatures.map((feature, index) => (
               <div
                 key={index}
-                className={`group bg-card rounded-2xl p-8 shadow-lg border border-border hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 ${
-                  isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
-                }`}
+                className={`group bg-card rounded-2xl p-8 shadow-lg border border-border hover:shadow-xl transition-all duration-500 transform hover:-translate-y-2 ${isVisible.features ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
+                  }`}
                 style={{ transitionDelay: `${index * 150}ms` }}
               >
-                <div className="relative overflow-hidden rounded-xl mb-6">
-                  <img
-                    src={feature.image}
-                    alt={feature.title}
-                    className="w-full h-32 object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="mb-6 transform transition-transform duration-300 group-hover:scale-110">
-                  {feature.icon}
+                <div className="mb-6 text-4xl transform transition-transform duration-300 group-hover:scale-110 text-primary">
+                  {renderBootstrapIcon(feature.icon, '', 40)}
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-4">{feature.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
@@ -253,9 +238,9 @@ const HomePage = () => {
       {/* Stats Section */}
       <section className="py-20 bg-gradient-stats" ref={statsRef}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <AnimatedStat key={index} stat={stat} index={index} />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 justify-items-center max-w-5xl mx-auto">
+            {cmsStats.map((stat, index) => (
+              <StatDisplay key={index} stat={stat} index={index} />
             ))}
           </div>
         </div>

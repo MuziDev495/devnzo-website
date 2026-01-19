@@ -53,58 +53,58 @@ const Header = () => {
           onMouseLeave={() => setOpenDropdown(null)}
         >
           <button
-            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 flex items-center ${
-              isActive(item.path)
+            className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 flex items-center ${isActive(item.path)
                 ? 'text-primary border-primary'
                 : 'text-foreground hover:text-primary border-transparent hover:border-primary/30'
-            }`}
+              }`}
           >
             {item.title}
             <ChevronDown className="ml-1 w-4 h-4" />
           </button>
 
           {openDropdown === item.path && (
-            <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-card rounded-lg shadow-lg border border-border py-4 z-50 ${
-              isMegaMenu ? 'min-w-[400px]' : 'min-w-48'
-            }`}>
-              {isMegaMenu ? (
-                <div className="grid grid-cols-2 gap-6 px-6">
-                  {categories.map(category => (
-                    <div key={category}>
-                      <h4 className="font-semibold text-foreground mb-3">{category}</h4>
-                      <div className="space-y-1">
-                        {categoryGroups[category].map((child: MenuItem) => (
-                          <Link
-                            key={child.id || child.path}
-                            to={child.path}
-                            target={child.openInNewTab ? '_blank' : undefined}
-                            rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
-                            className="block py-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-                            onClick={() => setOpenDropdown(null)}
-                          >
-                            {child.title}
-                          </Link>
-                        ))}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 z-50">
+              <div className={`bg-card rounded-lg shadow-lg border border-border py-4 ${isMegaMenu ? 'min-w-[400px]' : 'min-w-[240px]'
+                }`}>
+                {isMegaMenu ? (
+                  <div className="grid grid-cols-2 gap-6 px-6">
+                    {categories.map(category => (
+                      <div key={category}>
+                        <h4 className="font-semibold text-foreground mb-3">{category}</h4>
+                        <div className="space-y-1">
+                          {categoryGroups[category].map((child: MenuItem) => (
+                            <Link
+                              key={child.id || child.path}
+                              to={child.path}
+                              target={child.openInNewTab ? '_blank' : undefined}
+                              rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                              className="block py-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                              onClick={() => setOpenDropdown(null)}
+                            >
+                              {child.title}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-2">
-                  {item.children!.map((child: MenuItem) => (
-                    <Link
-                      key={child.id || child.path}
-                      to={child.path}
-                      target={child.openInNewTab ? '_blank' : undefined}
-                      rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
-                      className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors"
-                      onClick={() => setOpenDropdown(null)}
-                    >
-                      {child.title}
-                    </Link>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-2">
+                    {item.children!.map((child: MenuItem) => (
+                      <Link
+                        key={child.id || child.path}
+                        to={child.path}
+                        target={child.openInNewTab ? '_blank' : undefined}
+                        rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors"
+                        onClick={() => setOpenDropdown(null)}
+                      >
+                        {child.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -116,11 +116,10 @@ const Header = () => {
       <Link
         key={item.path}
         to={item.path}
-        className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 ${
-          isActive(item.path)
+        className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 ${isActive(item.path)
             ? 'text-primary border-primary'
             : 'text-foreground hover:text-primary border-transparent hover:border-primary/30'
-        }`}
+          }`}
       >
         {item.title}
       </Link>

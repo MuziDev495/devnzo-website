@@ -5,9 +5,16 @@
 
 import { Handshake, TrendingUp, Users, Award, CheckCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePageContent } from '@/contexts/CMSContext';
 
 const PartnersPage = () => {
+  const { pageContent } = usePageContent();
   const navigate = useNavigate();
+
+  // CMS data with defaults
+  const heroTitle = pageContent?.partners?.hero?.title || 'Partner with Devnzo';
+  const heroSubtitle = pageContent?.partners?.hero?.subtitle || 'Join our growing ecosystem of partners and unlock new opportunities for growth, revenue, and success.';
+  const heroCtaText = pageContent?.partners?.hero?.ctaText || 'Become a Partner';
 
   const partnerBenefits = [
     {
@@ -80,17 +87,16 @@ const PartnersPage = () => {
       <section className="bg-gradient-hero py-20 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-6">
-            Partner with Devnzo
+            {heroTitle}
           </h1>
           <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto mb-8">
-            Join our growing ecosystem of partners and unlock new opportunities 
-            for growth, revenue, and success.
+            {heroSubtitle}
           </p>
           <button
             onClick={() => navigate('/contact')}
             className="bg-background text-foreground px-8 py-4 rounded-full text-lg font-semibold hover:bg-secondary transition-all duration-300 inline-flex items-center"
           >
-            Become a Partner
+            {heroCtaText}
             <ArrowRight className="ml-2 w-5 h-5" />
           </button>
         </div>

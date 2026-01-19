@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
+import { usePageContent } from '@/contexts/CMSContext';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -22,6 +23,7 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 const ContactPage = () => {
+  const { pageContent } = usePageContent();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
   const { toast } = useToast();
@@ -30,24 +32,31 @@ const ContactPage = () => {
     resolver: zodResolver(contactSchema),
   });
 
+  // CMS data with defaults
+  const contactTitle = pageContent?.contact?.title || 'Get In Touch';
+  const contactDescription = pageContent?.contact?.description || "Have a question or want to learn more about how Devnzo can help your business? We'd love to hear from you.";
+  const contactEmail = pageContent?.contact?.email || 'contact@devnzo.com';
+  const contactPhone = pageContent?.contact?.phone || '+1 (307) 225 5593';
+  const contactAddress = pageContent?.contact?.address || '34 N Franklin Ave Ste 687, Pinedale, WY, 82941';
+
   const contactInfo = [
     {
       icon: <Mail className="w-6 h-6 text-accent" />,
       title: 'Email Us',
-      details: 'contact@devnzo.com',
+      details: contactEmail,
       description: 'Send us an email anytime!'
     },
     {
       icon: <Phone className="w-6 h-6 text-success" />,
       title: 'Call Us',
-      details: '+1 (307) 225 5593',
+      details: contactPhone,
       description: 'Mon-Fri from 8am to 5pm'
     },
     {
       icon: <MapPin className="w-6 h-6 text-primary" />,
       title: 'Visit Us',
-      details: '34 N Franklin Ave Ste 687',
-      description: 'Pinedale, WY, 82941'
+      details: contactAddress.split(',')[0] || contactAddress,
+      description: contactAddress.split(',').slice(1).join(',').trim() || 'Our Location'
     },
     {
       icon: <Clock className="w-6 h-6 text-warning" />,
@@ -64,7 +73,7 @@ const ContactPage = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       setSubmitStatus('success');
       toast({
         title: "Message Sent!",
@@ -89,11 +98,10 @@ const ContactPage = () => {
       <section className="bg-gradient-hero py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-primary-foreground mb-6">
-            Get In Touch
+            {contactTitle}
           </h1>
           <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-            Have a question or want to learn more about how Devnzo can help your business? 
-            We'd love to hear from you.
+            {contactDescription}
           </p>
         </div>
       </section>
@@ -126,7 +134,7 @@ const ContactPage = () => {
             {/* Form */}
             <div className="bg-card rounded-2xl p-8 shadow-lg border border-border">
               <h2 className="text-2xl font-bold text-foreground mb-6">Send us a Message</h2>
-              
+
               {submitStatus === 'success' && (
                 <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-lg flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-success" />

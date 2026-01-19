@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +14,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { 
-  GripVertical, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  ChevronRight, 
+import {
+  GripVertical,
+  Plus,
+  Trash2,
+  Edit2,
+  ChevronRight,
   ExternalLink,
   Save,
   Menu,
@@ -82,9 +82,8 @@ const defaultMenus: MenusData = {
     items: [
       { id: 'footer_resources_1', title: 'Blog', path: '/blog', order: 0, visible: true },
       { id: 'footer_resources_2', title: 'Help Center', path: '/help-center', order: 1, visible: true },
-      { id: 'footer_resources_3', title: 'Documentation', path: '/documentation', order: 2, visible: true },
-      { id: 'footer_resources_4', title: 'Support', path: '/support', order: 3, visible: true },
-      { id: 'footer_resources_5', title: 'FAQs', path: '/faq', order: 4, visible: true },
+      { id: 'footer_resources_3', title: 'Support', path: '/support', order: 2, visible: true },
+      { id: 'footer_resources_4', title: 'FAQs', path: '/faq', order: 3, visible: true },
     ]
   }
 };
@@ -111,7 +110,7 @@ const NavigationManager: React.FC = () => {
     try {
       const docRef = doc(db, 'page_content', 'main');
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.menus) {
@@ -119,7 +118,7 @@ const NavigationManager: React.FC = () => {
         } else {
           // Migrate existing navigation data to new menu structure
           const migratedMenus = { ...defaultMenus };
-          
+
           if (data.navigation?.main) {
             migratedMenus.header.items = data.navigation.main.map((item: any, index: number) => ({
               id: `header_${index}`,
@@ -130,7 +129,7 @@ const NavigationManager: React.FC = () => {
               openInNewTab: false
             }));
           }
-          
+
           if (data.footer?.company) {
             migratedMenus.footerCompany.items = data.footer.company.map((item: any, index: number) => ({
               id: `footer_company_${index}`,
@@ -141,7 +140,7 @@ const NavigationManager: React.FC = () => {
               openInNewTab: false
             }));
           }
-          
+
           if (data.footer?.resources) {
             migratedMenus.footerResources.items = data.footer.resources.map((item: any, index: number) => ({
               id: `footer_resources_${index}`,
@@ -152,7 +151,7 @@ const NavigationManager: React.FC = () => {
               openInNewTab: false
             }));
           }
-          
+
           setMenus(migratedMenus);
         }
       }
@@ -168,7 +167,7 @@ const NavigationManager: React.FC = () => {
     try {
       const docRef = doc(db, 'page_content', 'main');
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.pages) {
@@ -190,35 +189,60 @@ const NavigationManager: React.FC = () => {
     setSaving(true);
     try {
       const docRef = doc(db, 'page_content', 'main');
-      
+
       // Also update the legacy navigation/footer structure for backward compatibility
       const headerItems = menus.header?.items || [];
       const footerCompanyItems = menus.footerCompany?.items || [];
       const footerResourcesItems = menus.footerResources?.items || [];
-      
-      await updateDoc(docRef, {
-        menus,
-        'navigation.main': headerItems.filter(item => !item.parentId).map(item => ({
-          title: item.title,
-          path: item.path,
-          visible: item.visible,
-          order: item.order
-        })),
-        'footer.company': footerCompanyItems.map(item => ({
-          title: item.title,
-          path: item.path
-        })),
-        'footer.resources': footerResourcesItems.map(item => ({
-          title: item.title,
-          path: item.path
-        }))
-      });
-      
+
+      // Create a clean menus object without undefined values
+      const cleanMenus = Object.fromEntries(
+        Object.entries(menus).map(([key, menu]) => [
+          key,
+          {
+            name: menu.name,
+            items: menu.items.map(item => ({
+              id: item.id,
+              title: item.title,
+              path: item.path,
+              order: item.order,
+              visible: item.visible,
+              ...(item.parentId && { parentId: item.parentId }),
+              ...(item.category && { category: item.category }),
+              ...(item.openInNewTab && { openInNewTab: item.openInNewTab })
+            }))
+          }
+        ])
+      );
+
+      await setDoc(docRef, {
+        menus: cleanMenus,
+        navigation: {
+          main: headerItems.filter(item => !item.parentId).map(item => ({
+            title: item.title,
+            path: item.path,
+            visible: item.visible,
+            order: item.order
+          }))
+        },
+        footer: {
+          company: footerCompanyItems.map(item => ({
+            title: item.title,
+            path: item.path
+          })),
+          resources: footerResourcesItems.map(item => ({
+            title: item.title,
+            path: item.path
+          }))
+        }
+      }, { merge: true });
+
       await refreshCMS();
       toast({ title: 'Success', description: 'Menus saved successfully' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving menus:', error);
-      toast({ title: 'Error', description: 'Failed to save menus', variant: 'destructive' });
+      const errorMessage = error?.message || error?.code || 'Failed to save menus';
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -315,13 +339,13 @@ const NavigationManager: React.FC = () => {
 
     const currentMenu = menus[activeMenu];
     const items = [...currentMenu.items];
-    
+
     const draggedIndex = items.findIndex(i => i.id === draggedItem.id);
     const targetIndex = items.findIndex(i => i.id === targetItem.id);
-    
+
     items.splice(draggedIndex, 1);
     items.splice(targetIndex, 0, draggedItem);
-    
+
     // Update order
     const reorderedItems = items.map((item, index) => ({
       ...item,
@@ -373,7 +397,7 @@ const NavigationManager: React.FC = () => {
   const buildMenuTree = (items: MenuItem[]): MenuItem[] => {
     const sortedItems = [...items].sort((a, b) => a.order - b.order);
     const topLevelItems = sortedItems.filter(item => !item.parentId);
-    
+
     return topLevelItems.map(parent => ({
       ...parent,
       children: sortedItems.filter(child => child.parentId === parent.id)
@@ -425,11 +449,10 @@ const NavigationManager: React.FC = () => {
               <button
                 key={key}
                 onClick={() => setActiveMenu(key)}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  activeMenu === key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted text-foreground'
-                }`}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeMenu === key
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted text-foreground'
+                  }`}
               >
                 <span className="font-medium">{menu.name}</span>
                 <span className="block text-sm opacity-75">
@@ -524,7 +547,7 @@ const NavigationManager: React.FC = () => {
                     <Checkbox
                       id="openInNewTab"
                       checked={newItem.openInNewTab}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setNewItem({ ...newItem, openInNewTab: checked === true })
                       }
                     />
@@ -556,9 +579,8 @@ const NavigationManager: React.FC = () => {
                       onDragStart={(e) => handleDragStart(e, item)}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, item)}
-                      className={`flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:border-primary/50 transition-colors cursor-move ${
-                        !item.visible ? 'opacity-50' : ''
-                      }`}
+                      className={`flex items-center gap-3 p-3 bg-muted rounded-lg border border-border hover:border-primary/50 transition-colors cursor-move ${!item.visible ? 'opacity-50' : ''
+                        }`}
                     >
                       <GripVertical className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -607,9 +629,8 @@ const NavigationManager: React.FC = () => {
                             onDragStart={(e) => handleDragStart(e, child)}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, child)}
-                            className={`flex items-center gap-3 p-3 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors cursor-move ${
-                              !child.visible ? 'opacity-50' : ''
-                            }`}
+                            className={`flex items-center gap-3 p-3 bg-background rounded-lg border border-border hover:border-primary/50 transition-colors cursor-move ${!child.visible ? 'opacity-50' : ''
+                              }`}
                           >
                             <GripVertical className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -694,7 +715,7 @@ const NavigationManager: React.FC = () => {
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="None (top level)" />
                     </SelectTrigger>
-                <SelectContent className="bg-card z-50">
+                    <SelectContent className="bg-card z-50">
                       <SelectItem value="__none__">None (top level)</SelectItem>
                       {topLevelItems
                         .filter(item => item.id !== editingItem.id)
@@ -711,7 +732,7 @@ const NavigationManager: React.FC = () => {
                 <Checkbox
                   id="editOpenInNewTab"
                   checked={editingItem.openInNewTab}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setEditingItem({ ...editingItem, openInNewTab: checked === true })
                   }
                 />
@@ -723,7 +744,7 @@ const NavigationManager: React.FC = () => {
                 <Checkbox
                   id="editVisible"
                   checked={editingItem.visible}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setEditingItem({ ...editingItem, visible: checked === true })
                   }
                 />

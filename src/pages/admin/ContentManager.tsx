@@ -9,6 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Plus, Trash2, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { IconPicker } from '@/components/admin/IconPicker';
+import saadImage from '@/components/image/saad.jpg';
+import muzzamilImage from '@/components/image/Muzzamil.jpg';
+import umarImage from '@/components/image/umar.jpg';
 
 // ============== Type Definitions ==============
 
@@ -43,6 +47,8 @@ interface Tool {
   rating: number;
   reviews: number;
   price: string;
+  image?: string;
+  link?: string;
 }
 
 interface Testimonial {
@@ -78,6 +84,25 @@ interface ResourceCard {
   color: string;
 }
 
+interface TeamMember {
+  name: string;
+  role: string;
+  image: string;
+  description: string;
+}
+
+interface CompanyValue {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface MissionSection {
+  imageUrl: string;
+  badgeText: string;
+  badgeSubtext: string;
+}
+
 interface NavItem {
   title: string;
   path: string;
@@ -104,6 +129,9 @@ interface PageContentData {
     mission: string;
     vision: string;
     stats: Stat[];
+    team: TeamMember[];
+    values: CompanyValue[];
+    missionSection: MissionSection;
   };
   contact: {
     title: string;
@@ -160,13 +188,62 @@ const defaultContent: PageContentData = {
   },
   about: {
     title: 'About Devnzo',
-    description: 'We are a technology company dedicated to helping businesses grow.',
-    mission: 'Our mission is to empower businesses with innovative solutions.',
-    vision: 'Our vision is to be the leading provider of eCommerce solutions.',
+    description: "We're on a mission to empower businesses worldwide with innovative technology solutions that drive sustainable growth and success.",
+    mission: 'At Devnzo, we believe every business deserves access to powerful, enterprise-grade tools that were once only available to large corporations. Our mission is to democratize technology and empower businesses of all sizes to compete and succeed in the digital age.',
+    vision: "Since our founding, we've helped over 50,000 businesses across 150+ countries transform their operations, increase efficiency, and achieve remarkable growth.",
     stats: [
-      { value: '10+', label: 'Years Experience' },
-      { value: '500+', label: 'Happy Clients' },
+      { value: '50K+', label: 'Active Users' },
+      { value: '99.9%', label: 'Uptime' },
+      { value: '500M+', label: 'Transactions' },
+      { value: '200+', label: 'Team Members' },
     ],
+    team: [
+      {
+        name: "Saad Muneeb Khan",
+        role: "CEO & Founder",
+        image: saadImage,
+        description: "Visionary leader with 15+ years in tech and eCommerce.",
+      },
+      {
+        name: "Muzzamil Riaz",
+        role: "CTO",
+        image: muzzamilImage,
+        description: "Technology expert driving innovation and platform development.",
+      },
+      {
+        name: "Muhammad Umar",
+        role: "Head of Product",
+        image: umarImage,
+        description: "Product strategist with a passion for user experience.",
+      },
+    ],
+    values: [
+      {
+        icon: 'Target',
+        title: "Innovation First",
+        description: "We constantly push boundaries to deliver cutting-edge solutions that drive business growth.",
+      },
+      {
+        icon: 'People',
+        title: "Customer Success",
+        description: "Our customers' success is our success. We're committed to helping businesses thrive.",
+      },
+      {
+        icon: 'ShieldCheck',
+        title: "Trust & Security",
+        description: "We maintain the highest standards of security and reliability in everything we do.",
+      },
+      {
+        icon: 'Globe',
+        title: "Global Impact",
+        description: "We're building solutions that make a positive impact on businesses worldwide.",
+      },
+    ],
+    missionSection: {
+      imageUrl: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600",
+      badgeText: "10+",
+      badgeSubtext: "Years of Excellence"
+    }
   },
   contact: {
     title: 'Get in Touch',
@@ -196,7 +273,12 @@ const defaultContent: PageContentData = {
       { value: '250k+', label: 'Projects' },
     ],
     tools: [
-      { name: 'Bulk Image Optimizer', category: 'Image & File Optimization', description: 'Optimize your store images', rating: 4.8, reviews: 1234, price: 'Free' },
+      { name: 'Bulk Image Optimizer', category: 'Image & File Optimization', description: 'Optimize your store images for better performance', rating: 4.8, reviews: 1234, price: 'Free', image: '', link: '' },
+      { name: 'SEO - Blog Post Builder', category: 'SEO', description: 'Create SEO-optimized blog posts automatically', rating: 4.9, reviews: 856, price: '$9.99/mo', image: '', link: '' },
+      { name: 'Advanced Sales & Cost Analysis', category: 'Analytics', description: 'Deep insights into your sales and cost metrics', rating: 4.7, reviews: 2341, price: '$19.99/mo', image: '', link: '' },
+      { name: 'Customer Review Manager', category: 'Reviews', description: 'Manage and showcase customer reviews effectively', rating: 4.9, reviews: 1567, price: '$14.99/mo', image: '', link: '' },
+      { name: 'Inventory Sync Pro', category: 'Inventory', description: 'Keep your inventory synced across all channels', rating: 4.6, reviews: 892, price: '$24.99/mo', image: '', link: '' },
+      { name: 'Email Marketing Suite', category: 'Marketing', description: 'Complete email marketing automation toolkit', rating: 4.8, reviews: 3421, price: '$29.99/mo', image: '', link: '' },
     ],
     testimonials: [
       { name: 'John Smith', company: 'E-Commerce Pro', text: 'Amazing tools!', avatar: '', rating: 5 },
@@ -262,7 +344,7 @@ const defaultContent: PageContentData = {
       { title: 'Facebook', path: 'https://facebook.com/Devnzo', icon: 'facebook' },
     ],
     description: 'Empowering businesses with innovative solutions for sustainable growth and success.',
-    copyright: '© 2025 Devnzo. All rights reserved.'
+    copyright: '© 2026 Devnzo. All rights reserved.'
   }
 };
 
@@ -278,14 +360,41 @@ const ContentManager: React.FC = () => {
     fetchContent();
   }, []);
 
+  // Deep merge function to properly combine default content with Firestore data
+  const deepMerge = (target: any, source: any): any => {
+    const output = { ...target };
+    if (isObject(target) && isObject(source)) {
+      Object.keys(source).forEach(key => {
+        if (isObject(source[key])) {
+          if (!(key in target)) {
+            Object.assign(output, { [key]: source[key] });
+          } else {
+            output[key] = deepMerge(target[key], source[key]);
+          }
+        } else if (Array.isArray(source[key])) {
+          // For arrays, use the source array directly (don't merge)
+          output[key] = source[key];
+        } else {
+          Object.assign(output, { [key]: source[key] });
+        }
+      });
+    }
+    return output;
+  };
+
+  const isObject = (item: any): boolean => {
+    return item && typeof item === 'object' && !Array.isArray(item);
+  };
+
   const fetchContent = async () => {
     try {
       const docRef = doc(db, 'page_content', 'main');
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists()) {
         const data = docSnap.data() as Partial<PageContentData>;
-        setContent({ ...defaultContent, ...data });
+        // Use deep merge to properly combine nested objects
+        setContent(deepMerge(defaultContent, data));
       }
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -391,8 +500,8 @@ const ContentManager: React.FC = () => {
           <h1 className="text-3xl font-bold">Content Manager</h1>
           <p className="text-muted-foreground">Edit all website content from one place</p>
         </div>
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={saving}
           className="bg-gradient-primary hover:opacity-90"
         >
@@ -501,10 +610,10 @@ const ContentManager: React.FC = () => {
                 <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
                   <div className="flex-1 space-y-4">
                     <div className="grid md:grid-cols-3 gap-4">
-                      <Input
+                      <IconPicker
                         value={feature.icon}
-                        onChange={(e) => updateArrayItem('homepage', 'features', index, 'icon', e.target.value)}
-                        placeholder="Icon emoji"
+                        onChange={(iconName) => updateArrayItem('homepage', 'features', index, 'icon', iconName)}
+                        placeholder="Select icon"
                       />
                       <Input
                         value={feature.title}
@@ -585,6 +694,191 @@ const ContentManager: React.FC = () => {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Mission Hero & Badge</CardTitle>
+              <CardDescription>Main mission image and floating badge details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Mission Image URL</Label>
+                <Input
+                  value={content.about.missionSection.imageUrl}
+                  onChange={(e) => updateNestedField('about', 'missionSection', 'imageUrl', e.target.value)}
+                  placeholder="https://images.pexels.com/..."
+                />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Badge Title (e.g., 10+)</Label>
+                  <Input
+                    value={content.about.missionSection.badgeText}
+                    onChange={(e) => updateNestedField('about', 'missionSection', 'badgeText', e.target.value)}
+                    placeholder="10+"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Badge Subtitle</Label>
+                  <Input
+                    value={content.about.missionSection.badgeSubtext}
+                    onChange={(e) => updateNestedField('about', 'missionSection', 'badgeSubtext', e.target.value)}
+                    placeholder="Years of Excellence"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>About Stats</CardTitle>
+              <CardDescription>Key metrics displayed on the about page</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {content.about.stats.map((stat, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <div className="flex-1 grid grid-cols-2 gap-4">
+                    <Input
+                      value={stat.value}
+                      onChange={(e) => updateArrayItem('about', 'stats', index, 'value', e.target.value)}
+                      placeholder="Value (e.g., 50K+)"
+                    />
+                    <Input
+                      value={stat.label}
+                      onChange={(e) => updateArrayItem('about', 'stats', index, 'label', e.target.value)}
+                      placeholder="Label (e.g., Active Users)"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeArrayItem('about', 'stats', index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => addArrayItem('about', 'stats', { value: '', label: '' })}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Stat
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Company Values</CardTitle>
+              <CardDescription>Core values with icons</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {content.about.values.map((value, index) => (
+                <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
+                  <div className="flex-1 space-y-4">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <IconPicker
+                        value={value.icon}
+                        onChange={(iconName) => updateArrayItem('about', 'values', index, 'icon', iconName)}
+                        placeholder="Select icon"
+                      />
+                      <Input
+                        value={value.title}
+                        onChange={(e) => updateArrayItem('about', 'values', index, 'title', e.target.value)}
+                        placeholder="Value title"
+                        className="md:col-span-2"
+                      />
+                    </div>
+                    <Textarea
+                      value={value.description}
+                      onChange={(e) => updateArrayItem('about', 'values', index, 'description', e.target.value)}
+                      placeholder="Description"
+                      rows={2}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeArrayItem('about', 'values', index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => addArrayItem('about', 'values', { title: '', description: '', icon: 'star' })}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Value
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Leadership Team</CardTitle>
+              <CardDescription>Management and key personnel</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {content.about.team.map((member, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg relative group">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeArrayItem('about', 'team', index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input
+                        value={member.name}
+                        onChange={(e) => updateArrayItem('about', 'team', index, 'name', e.target.value)}
+                        placeholder="Member name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Role</Label>
+                      <Input
+                        value={member.role}
+                        onChange={(e) => updateArrayItem('about', 'team', index, 'role', e.target.value)}
+                        placeholder="e.g., CEO & Founder"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Profile Image URL</Label>
+                    <Input
+                      value={member.image}
+                      onChange={(e) => updateArrayItem('about', 'team', index, 'image', e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={member.description}
+                      onChange={(e) => updateArrayItem('about', 'team', index, 'description', e.target.value)}
+                      placeholder="Brief bio..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => addArrayItem('about', 'team', { name: '', role: '', image: '', description: '' })}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Team Member
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -672,14 +966,24 @@ const ContentManager: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Hero Subtitle</Label>
-                <Textarea
-                  value={content.products.hero.subtitle}
-                  onChange={(e) => updateNestedField('products', 'hero', 'subtitle', e.target.value)}
-                  placeholder="Supporting text"
-                  rows={2}
-                />
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Hero Subtitle</Label>
+                  <Textarea
+                    value={content.products.hero.subtitle}
+                    onChange={(e) => updateNestedField('products', 'hero', 'subtitle', e.target.value)}
+                    placeholder="Supporting text"
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>CTA Button Link (opens in new tab)</Label>
+                  <Input
+                    value={content.products.hero.ctaLink || ''}
+                    onChange={(e) => updateNestedField('products', 'hero', 'ctaLink', e.target.value)}
+                    placeholder="https://www.shopify.com/"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -693,10 +997,10 @@ const ContentManager: React.FC = () => {
               {content.products.ecosystemApps.map((app, index) => (
                 <div key={index} className="flex items-center gap-4">
                   <div className="flex-1 grid grid-cols-3 gap-4">
-                    <Input
+                    <IconPicker
                       value={app.icon}
-                      onChange={(e) => updateArrayItem('products', 'ecosystemApps', index, 'icon', e.target.value)}
-                      placeholder="Icon emoji"
+                      onChange={(iconName) => updateArrayItem('products', 'ecosystemApps', index, 'icon', iconName)}
+                      placeholder="Select icon"
                     />
                     <Input
                       value={app.name}
@@ -762,6 +1066,93 @@ const ContentManager: React.FC = () => {
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Stat
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Handpicked Tools</CardTitle>
+              <CardDescription>Tools displayed in the handpicked tools section</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {content.products.tools.map((tool, index) => (
+                <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
+                  <div className="flex-1 space-y-4">
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <Input
+                        value={tool.name}
+                        onChange={(e) => updateArrayItem('products', 'tools', index, 'name', e.target.value)}
+                        placeholder="Tool name"
+                      />
+                      <Input
+                        value={tool.category}
+                        onChange={(e) => updateArrayItem('products', 'tools', index, 'category', e.target.value)}
+                        placeholder="Category"
+                      />
+                      <Input
+                        value={tool.price}
+                        onChange={(e) => updateArrayItem('products', 'tools', index, 'price', e.target.value)}
+                        placeholder="Price (e.g. Free, $9.99/mo)"
+                      />
+                    </div>
+                    <Textarea
+                      value={tool.description}
+                      onChange={(e) => updateArrayItem('products', 'tools', index, 'description', e.target.value)}
+                      placeholder="Description"
+                      rows={2}
+                    />
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="5"
+                        value={tool.rating}
+                        onChange={(e) => updateArrayItem('products', 'tools', index, 'rating', parseFloat(e.target.value) || 0)}
+                        placeholder="Rating (0-5)"
+                      />
+                      <Input
+                        type="number"
+                        value={tool.reviews}
+                        onChange={(e) => updateArrayItem('products', 'tools', index, 'reviews', parseInt(e.target.value) || 0)}
+                        placeholder="Number of reviews"
+                      />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Image URL</Label>
+                        <Input
+                          value={tool.image || ''}
+                          onChange={(e) => updateArrayItem('products', 'tools', index, 'image', e.target.value)}
+                          placeholder="https://example.com/image.png"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Link (opens in new tab)</Label>
+                        <Input
+                          value={tool.link || ''}
+                          onChange={(e) => updateArrayItem('products', 'tools', index, 'link', e.target.value)}
+                          placeholder="https://apps.shopify.com/example"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeArrayItem('products', 'tools', index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => addArrayItem('products', 'tools', { name: '', category: '', description: '', rating: 4.5, reviews: 0, price: 'Free', image: '', link: '' })}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Tool
               </Button>
             </CardContent>
           </Card>
@@ -890,10 +1281,10 @@ const ContentManager: React.FC = () => {
                 <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
                   <div className="flex-1 space-y-4">
                     <div className="grid md:grid-cols-4 gap-4">
-                      <Input
+                      <IconPicker
                         value={card.icon}
-                        onChange={(e) => updateArrayItem('resources', 'cards', index, 'icon', e.target.value)}
-                        placeholder="Icon"
+                        onChange={(iconName) => updateArrayItem('resources', 'cards', index, 'icon', iconName)}
+                        placeholder="Select icon"
                       />
                       <Input
                         value={card.title}
@@ -948,8 +1339,8 @@ const ContentManager: React.FC = () => {
                 .map((item, sortedIndex) => {
                   const originalIndex = item.originalIndex;
                   return (
-                    <div 
-                      key={originalIndex} 
+                    <div
+                      key={originalIndex}
                       className="flex items-center gap-2 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                       draggable
                       onDragStart={(e) => {
@@ -1132,7 +1523,7 @@ const ContentManager: React.FC = () => {
                 <Input
                   value={content.footer.copyright}
                   onChange={(e) => updateField('footer', 'copyright', e.target.value)}
-                  placeholder="© 2025 Company. All rights reserved."
+                  placeholder="© 2026 Company. All rights reserved."
                 />
               </div>
             </CardContent>

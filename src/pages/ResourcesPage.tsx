@@ -6,9 +6,15 @@
 import { Book, Code, ShoppingBag, FileText, Wrench, Gift, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/types/routes';
+import { usePageContent } from '@/contexts/CMSContext';
 
 const ResourcesPage = () => {
+  const { pageContent } = usePageContent();
   const navigate = useNavigate();
+
+  // CMS data with defaults
+  const heroTitle = pageContent?.resources?.hero?.title || 'Resources';
+  const heroSubtitle = pageContent?.resources?.hero?.subtitle || 'Everything you need to succeed in eCommerce. Guides, tools, apps, and more.';
 
   const resources = [
     {
@@ -39,13 +45,6 @@ const ResourcesPage = () => {
       path: ROUTES.RESOURCES.FREE_TOOLS,
       color: 'bg-warning/10'
     },
-    {
-      icon: <Gift className="w-8 h-8 text-info" />,
-      title: 'Shopify Free Trial',
-      description: 'Start your Shopify journey with an extended free trial.',
-      path: ROUTES.RESOURCES.SHOPIFY_FREE_TRIAL,
-      color: 'bg-info/10'
-    },
   ];
 
   return (
@@ -54,10 +53,10 @@ const ResourcesPage = () => {
       <section className="bg-gradient-hero py-20 text-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground mb-6">
-            Resources
+            {heroTitle}
           </h1>
           <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-            Everything you need to succeed in eCommerce. Guides, tools, apps, and more.
+            {heroSubtitle}
           </p>
         </div>
       </section>

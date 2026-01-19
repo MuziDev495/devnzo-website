@@ -37,6 +37,8 @@ const DocumentationEditor: React.FC = () => {
   const [slug, setSlug] = useState('');
   const [visible, setVisible] = useState(true);
   const [order, setOrder] = useState(0);
+  const [parentId, setParentId] = useState<string | null>(null);
+  const [allArticles, setAllArticles] = useState<Array<{ id: string; title: string; slug: string; parentId?: string }>>([]);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
 
@@ -62,6 +64,7 @@ const DocumentationEditor: React.FC = () => {
   });
 
   useEffect(() => {
+    fetchAllArticles();
     if (isEditing) {
       fetchArticle();
     } else {
@@ -69,17 +72,38 @@ const DocumentationEditor: React.FC = () => {
     }
   }, [id]);
 
+  const fetchAllArticles = async () => {
+    try {
+      const q = query(collection(db, 'documentation'));
+      const snapshot = await getDocs(q);
+      const articles = snapshot.docs
+        .filter(doc => doc.id !== id) // Exclude current article when editing
+        .map(doc => ({
+          id: doc.id,
+          title: doc.data().title,
+          slug: doc.data().slug,
+          parentId: doc.data().parentId
+        }))
+        // Only show top-level articles as potential parents
+        .filter(article => !article.parentId);
+      setAllArticles(articles);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    }
+  };
+
   const fetchArticle = async () => {
     try {
       const docRef = doc(db, 'documentation', id!);
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists()) {
         const data = docSnap.data();
         setTitle(data.title || '');
         setSlug(data.slug || '');
         setVisible(data.visible !== false);
         setOrder(data.order || 0);
+        setParentId(data.parentId || null);
         editor?.commands.setContent(data.content || '');
       } else {
         toast({ title: 'Error', description: 'Article not found', variant: 'destructive' });
@@ -126,12 +150,17 @@ const DocumentationEditor: React.FC = () => {
     setSaving(true);
     try {
       const content = editor?.getHTML() || '';
+      // Find parent article slug for URL construction
+      const parentArticle = parentId ? allArticles.find(a => a.id === parentId) : null;
+
       const articleData = {
         title: title.trim(),
         slug: slug.trim(),
         content,
         visible,
         order,
+        parentId: parentId || null,
+        parentSlug: parentArticle?.slug || null,
         updatedAt: serverTimestamp(),
       };
 
@@ -327,16 +356,38 @@ const DocumentationEditor: React.FC = () => {
         <div className="space-y-4">
           <Card>
             <CardContent className="pt-6 space-y-4">
+              {/* Parent Article Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="parent">Parent Article</Label>
+                <select
+                  id="parent"
+                  value={parentId || ''}
+                  onChange={(e) => setParentId(e.target.value || null)}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">None (Top-level article)</option>
+                  {allArticles.map(article => (
+                    <option key={article.id} value={article.id}>
+                      {article.title}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  {parentId ? 'This article will appear under the selected parent' : 'This will be a top-level article in the navigation'}
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="slug">URL Slug</Label>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>/docs/</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">
+                    /docs/{parentId ? `${allArticles.find(a => a.id === parentId)?.slug || '...'}/` : ''}
+                  </span>
                   <Input
                     id="slug"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="article-slug"
-                    className="flex-1"
                   />
                 </div>
               </div>

@@ -33,11 +33,10 @@ export const ROUTES = {
   PRODUCTS: '/products',
   RESOURCES: {
     INDEX: '/resources',
-    KNOWLEDGE: '/resources/knowledge',
-    SHOPIFY_APPS: '/resources/shopify-apps',
-    ALL_BLOG: '/resources/all-blog',
-    FREE_TOOLS: '/resources/free-tools',
-    SHOPIFY_FREE_TRIAL: '/resources/shopify-free-trial',
+    KNOWLEDGE: '/docs',
+    SHOPIFY_APPS: '/products',
+    ALL_BLOG: '/blog',
+    FREE_TOOLS: '/free-tools',
   },
   ABOUT: '/about',
   CONTACT: '/contact',
@@ -68,7 +67,6 @@ export const RESOURCE_LINKS: ResourceLink[] = [
   { title: 'Shopify Apps', path: ROUTES.RESOURCES.SHOPIFY_APPS, category: 'Shopify' },
   { title: 'All Blog', path: ROUTES.RESOURCES.ALL_BLOG, category: 'eCommerce' },
   { title: 'Free Tools', path: ROUTES.RESOURCES.FREE_TOOLS, category: 'eCommerce' },
-  { title: 'Shopify Free Trial', path: ROUTES.RESOURCES.SHOPIFY_FREE_TRIAL, category: 'eCommerce' },
 ];
 
 // Footer links configuration
